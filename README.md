@@ -6,7 +6,9 @@
 2.Solr中已经配置好三个内核，用于连接三种不同的数据源：
 
   -moongoDB内核用于同步mongoDB的数据进行搜索；
+  
   -sakila内核用于搜索导入的Mysql中的默认数据库sakila；
+  
   -tika内核用于将本地指定文件夹下的文档（Office或PDF等）导入，进行全文检索。
   
 3.已完成Solr和Tomcat服务器的整合，整个文件夹下载后，进入apache-tomcat-8.0.36中bin目录，双击startup.bat即可开始运行；
