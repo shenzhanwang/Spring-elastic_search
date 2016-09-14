@@ -1,0 +1,19 @@
+<dataConfig>
+    <dataSource name="bin" type="BinFileDataSource" />
+    <document>
+        <entity name="f" dataSource="null" rootEntity="false"
+            processor="FileListEntityProcessor"
+            baseDir="D:\\files" 
+            fileName=".*\.(DOC)|(PDF)|(pdf)|(doc)|(docx)|(ppt)" onError="skip"
+            recursive="true">
+			<field column="fileAbsolutePath" name="id" />
+			<field column="fileSize" name="size" />
+            <field column="fileLastModified" name="lastmodified" />
+            <entity name="tika-test" dataSource="bin" processor="TikaEntityProcessor"
+            url="${f.fileAbsolutePath}" format="text" onError="skip">                
+				<field column="Author" name="author" meta="true"/>
+				<field column="text" name="content"/> 				           
+            </entity>
+        </entity>
+    </document>
+</dataConfig>

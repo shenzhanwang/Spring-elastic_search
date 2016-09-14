@@ -1,0 +1,20 @@
+<dataConfig>
+  <dataSource name="mysql" type="JdbcDataSource" 
+              driver="com.mysql.jdbc.Driver"
+              url="jdbc:mysql://localhost:3306/sakila" 
+              user="root" 
+              password="1234"/>
+  <document>
+    <entity dataSource="mysql" name="country" pk="country_id" query="select country_id,country,last_update from country" 
+	deltaImportQuery="SELECT * FROM country WHERE country_id = '${dih.delta.id}'" 
+	deltaQuery="SELECT country_id FROM country WHERE last_update > '${dataimporter.last_index_time}' and isDeleted=0"
+	deletedPkQuery="select country_id from country where isDeleted=1">
+	   <field column="country_id" name="id"/>
+       <field column="country" name="country"/>
+	   <field column="last_update" name="last_update"/>
+	   <entity name="city" pk="city_id" query="select city from city where country_id='${country.country_id}'">
+                <field column="city" name="citys" />
+       </entity>
+    </entity>	
+  </document>
+</dataConfig>
