@@ -1,5 +1,5 @@
 # Spring-solr
-本项目基于Apache Solr提供一个配置好的搜索引擎并包含一些初始数据，再基于Spring框架连接solr实现企业级搜索的功能。主要内容如下：
+本项目基于Apache Solr提供一个根据需求配置好的搜索引擎并导入一些初始数据，再基于Spring框架连接solr实现企业级搜索的功能。主要内容如下：
 
 1.搜索引擎基于Solr5.3.1，官网：http://lucene.apache.org/solr/
 
