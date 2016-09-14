@@ -22,3 +22,7 @@
 7.启动Tomcat后，访问http://localhost:8080/solr/  可进入solr的管理控制台页面，搜索入口访问http://localhost:8080/Spring-solr/search
 
 8.前端暂不提供对sakila和mongoDB的搜索，仅提供了文档的全文检索，要使用数据库的搜索，请进入solr控制台查看效果。
+
+效果图：
+ ![alt text](https://github.com/shenzhanwang/Spring-solr/blob/master/1.png)
+ ![alt text](https://github.com/shenzhanwang/Spring-solr/blob/master/2.jpg)
