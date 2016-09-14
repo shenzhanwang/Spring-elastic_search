@@ -5,7 +5,7 @@
 
 2.Solr中已经配置好三个内核，用于连接三种不同的数据源：
 
-  -moongoDB内核用于同步mongoDB的数据进行搜索；
+  -mongoDB内核用于同步mongoDB的数据进行搜索；
   
   -sakila内核用于搜索导入的Mysql中的默认数据库sakila；
   
