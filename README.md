@@ -13,7 +13,7 @@
   
 3.已完成Solr和Tomcat服务器的整合，整个文件夹下载后，进入apache-tomcat-8.0.36中bin目录，双击startup.bat即可开始运行；
 
-4.已整合中文分词器IKAnalyzer，官网https://github.com/EugenePig/ik-analyzer-solr5 。在apache-tomcat-8.0.36\webapps\solr\WEB-INF\classes路径下添加了用户自定义的字典用于扩展分词；
+4.已整合中文分词器IKAnalyzer，官网https://github.com/EugenePig/ik-analyzer-solr5 。在apache-tomcat-8.0.36\webapps\solr\WEB-INF\classes路径下添加了用户自定义的字典my.dic用于扩展分词；
 
 5.mongoDB与solr同步工具使用mongo-connector完成，需在Linux下运行，官网https://github.com/mongodb-labs/mongo-connector
 
