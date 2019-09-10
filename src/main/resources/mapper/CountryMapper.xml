@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="boot.spring.mapper.CountryMapper">
+  <resultMap id="BaseResultMap" type="boot.spring.po.Country">
+    <id column="country_id" jdbcType="SMALLINT" property="country_id" />
+    <result column="country" jdbcType="VARCHAR" property="country" />
+    <result column="last_update" jdbcType="TIMESTAMP" property="last_update" />
+  </resultMap>
+  
+  <select id="selectCountrys" resultMap="BaseResultMap">
+  	select * from country
+  </select>
+  
+  <select id="selectByPrimaryKey" parameterType="java.lang.Short" resultMap="BaseResultMap">
+    select 
+    *
+    from country
+    where country_id = #{country_id,jdbcType=SMALLINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Short">
+    delete from country
+    where country_id = #{country_id,jdbcType=SMALLINT}
+  </delete>
+  <insert id="insert" parameterType="boot.spring.po.Country">
+    insert into country (country_id, country, last_update
+      )
+    values (#{country_id,jdbcType=SMALLINT}, #{country,jdbcType=VARCHAR}, #{last_update,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="boot.spring.po.Country">
+    update country
+    <set>
+      <if test="country != null">
+        country = #{country,jdbcType=VARCHAR},
+      </if>
+      <if test="lastUpdate != null">
+        last_update = #{last_update,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where country_id = #{country_id,jdbcType=SMALLINT}
+  </update>
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="boot.spring.mapper.SougoulogMapper">
+  <resultMap id="BaseResultMap" type="boot.spring.po.Sougoulog">
+  	<result column="id" jdbcType="INTEGER" property="id" />
+    <result column="visittime" jdbcType="VARCHAR" property="visittime" />
+    <result column="userid" jdbcType="VARCHAR" property="userid" />
+    <result column="keywords" jdbcType="VARCHAR" property="keywords" />
+    <result column="rank" jdbcType="INTEGER" property="rank" />
+    <result column="clicknum" jdbcType="INTEGER" property="clicknum" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+  </resultMap>
+  <insert id="insert" parameterType="boot.spring.po.Sougoulog" useGeneratedKeys="true" keyProperty="id">
+    insert into sougoulog (visittime, userid, keywords, 
+      rank, clicknum, url
+      )
+    values (#{visittime,jdbcType=VARCHAR}, #{userid,jdbcType=VARCHAR}, #{keywords,jdbcType=VARCHAR}, 
+      #{rank,jdbcType=INTEGER}, #{clicknum,jdbcType=INTEGER}, #{url,jdbcType=VARCHAR}
+      )
+  </insert>
+  
+  <select id="listSougoulogs" resultMap="BaseResultMap">
+  	select * from sougoulog
+  </select>
+</mapper>
