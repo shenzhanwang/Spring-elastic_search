@@ -22,32 +22,26 @@ public class ResultResponse {
 
     private String developerMessage;//错误堆栈消息
 
-    private Map<String, Object> data = new HashMap<>();
-    
+    private ResultData result;// 查询结果
+
     public ResultResponse(HttpStatus status, Integer code, String message, String developerMessage,
-			Map<String, Object> data) {
+			ResultData resultData) {
 		this.status = status;
 		this.code = code;
 		this.message = message;
 		this.developerMessage = developerMessage;
-		this.data = data;
+		this.result = resultData;
+	}
+
+	public ResultData getResultData() {
+		return result;
+	}
+
+	public void setResultData(ResultData resultData) {
+		this.result = resultData;
 	}
 
 	/**
-     * @return the data
-     */
-    public Map<String, Object> getData() {
-        return data;
-    }
-
-    /**
-     * @param data the data to set
-     */
-    public void setData(Map<String, Object> data) {
-        this.data = data;
-    }
-
-    /**
      * @return the status
      */
     public HttpStatus getStatus() {

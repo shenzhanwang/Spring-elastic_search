@@ -1,15 +1,11 @@
 package boot.spring.po;
 
-import java.util.Date;
 import java.util.List;
-
-import com.alibaba.fastjson.annotation.JSONField;
-
 
 public class Country {
 	private short country_id;
 	private String country;
-	private Date last_update;
+	private String last_update;
 	private List<City> citys;
 	public short getCountry_id() {
 		return country_id;
@@ -24,10 +20,10 @@ public class Country {
 		this.country = country;
 	}
 	
-	public Date getLast_update() {
+	public String getLast_update() {
 		return last_update;
 	}
-	public void setLast_update(Date last_update) {
+	public void setLast_update(String last_update) {
 		this.last_update = last_update;
 	}
 	public List<City> getCitys() {

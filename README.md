@@ -5,7 +5,7 @@ Spring boot整合elastic search 6.8.1实现全文检索。主要包含以下特�
 
 1. 全文检索的实现主要包括构建索引、高级搜索、文本分词三个模块；
 2. 索引的构建有增量更新和全量更新，一般第一次全量更新，以后增量更新；
-3. 使用 **spring-boot-starter-data-elasticsearch** 来操作elasticsearch，构建索引时，根据实际情况考虑哪些字段需要分词，哪些不需要分词，这会影响搜索结果。当构建索引和搜索时，都需要经过“分析”，而分词是分析的一个环节。
+3. 使用 **elasticsearch-rest-high-level-client** 来操作elasticsearch，构建索引时，根据实际情况考虑哪些字段需要分词，哪些不需要分词，这会影响搜索结果。当构建索引和搜索时，都需要经过“分析”，而分词是分析的一个环节。
 ![输入图片说明](https://images.gitee.com/uploads/images/2019/0805/082846_8cf33cda_1110335.png "微信截图_20190805082826.png")
 4. 高级搜索实现了以下几种：
     - 普通查询,先分词再精准搜索：matchQuery
@@ -113,8 +113,7 @@ elasticsearch {
 }
 ```
 在以上配置中，sjc字段是数据的时间戳，每次查询大于时间戳的数据进行增量更新。schedule配置更新频率。
- 
-**注意：由于logstash默认采用UTC时间，导致导入的时间数据比我们晚八个小时，所以我们要在filter部分给时间字段加上八个小时，索引的数据才是正确的。** 
+ **注意：由于logstash默认采用UTC时间，导致导入的时间数据比我们晚八个小时，所以我们要在filter部分给时间字段加上八个小时，索引的数据才是正确的。** 
 如果想增量导入，我们根据表中的时间戳字段配合调度器实现，导入结束的时间戳会被写入文件，每次调度，会读取上次的最后的时间戳以后的新数据导入，配置文件如下：
 
 ```
@@ -173,12 +172,10 @@ output {
 ```
 
 5. 在bin目录启动导入脚本：.\logstash -f .\jdbc.conf    **（如果想同时开启多个logstash，可以拷贝logstash到不同的目录下启动即可）** 
-
-
-
 ### 效果图
-![输入图片说明](https://images.gitee.com/uploads/images/2019/0812/114854_6715f7c0_1110335.png "QQ截图20190812114810.png")
-![输入图片说明](https://images.gitee.com/uploads/images/2019/0812/114903_bf22e6dd_1110335.png "QQ截图20190812114831.png")
+
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0823/105906_0e51ea07_1110335.png "1.png")
+
 ### 附录：个人作品索引目录（持续更新）
 
 #### 基础篇:职业化，从做好OA系统开始
@@ -196,37 +193,38 @@ output {
 11. [Spring连接图存数据库Neo4j实现增删改查](https://gitee.com/shenzhanwang/Spring-neo4j)
 12. [Spring平台整合消息队列ActiveMQ实现发布订阅、生产者消费者模型（JMS）](https://gitee.com/shenzhanwang/Spring-activeMQ)
 13. [Spring整合消息队列RabbitMQ实现四种消息模式（AMQP）](https://gitee.com/shenzhanwang/Spring-rabbitMQ)
-14. Spring框架的session模块实现集中式session管理 [购买](http://t.cn/Ai80zekN)
+14. Spring框架的session模块实现集中式session管理 [购买]
 15. [Spring整合websocket实现即时通讯](https://gitee.com/shenzhanwang/Spring-websocket)![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题")
-16. 使用Spring boot整合mybatis,rabbitmq,redis,mongodb实现增删改查 [购买](http://t.cn/Ai8Yh8Oy)
+16. 使用Spring boot整合mybatis,rabbitmq,redis,mongodb实现增删改查 [购买]
 17. [Spring MVC整合FastDFS客户端实现文件上传](https://gitee.com/shenzhanwang/Spring-fastdfs)
-18. 23种设计模式，源码、注释、使用场景 [购买](http://t.cn/Ai8Y7tEF)
+18. 23种设计模式，源码、注释、使用场景 [购买] 
 19. [使用ETL工具Kettle的实例](https://gitee.com/shenzhanwang/Kettle-demo)
-20. Git指南和分支管理策略 [购买](http://t.cn/Ai8Y7948)
-21. 使用数据仓库进行OLAP数据分析（Mysql+Kettle+Zeppelin） ![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题")[购买](http://t.cn/Ai8Y7dVD)
+20. Git指南和分支管理策略 [购买]
+21. 使用数据仓库进行OLAP数据分析（Mysql+Kettle+Zeppelin） [购买]
+![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题")
 #### 高级篇：架构之美
 22. [zookeeper原理、架构、使用场景和可视化](https://gitee.com/shenzhanwang/zookeeper-practice)
-23. Spring boot整合Apache dubbo v2.7实现分布式服务治理（SOA架构） ![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题") [购买](http://t.cn/Ai8YzoYt)
-24. 使用Spring Cloud实现微服务架构（MSA架构）![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题")   [购买](http://t.cn/Ai8YzrB6)
-25. 使用jenkins+centos+git+maven搭建持续集成环境自动化部署分布式服务 [购买](http://t.cn/Ai8YZbaX)
-26. 使用docker+compose+jenkins+gitlab+spring cloud实现微服务的编排、持续集成和动态扩容 [购买](http://t.cn/Ai8YZCYK)
-27. 使用FastDFS搭建分布式文件系统（高可用、负载均衡）[购买](http://t.cn/Ai8YZePu)
-28. 搭建高可用nginx集群和Tomcat负载均衡 [购买](http://t.cn/Ai8Ywlr8)
-29. 搭建可扩展的ActiveMQ高可用集群 [购买](http://t.cn/Ai8YAbA8)
-30. 实现Mysql数据库的主从复制、读写分离、分表分库、负载均衡和高可用 [购买](http://t.cn/Ai8YAOAK)
-31. 搭建高可用redis集群实现分布式缓存 [购买](http://t.cn/Ai8Y2NQy)
+23. Spring boot整合Apache dubbo v2.7实现分布式服务治理（SOA架构） [购买] ![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题")
+24. 使用Spring Cloud实现微服务架构（MSA架构）![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题")  
+> -- vDalston.SR5 [购买]  
+-- vFinchley.SR2 [购买]
+25. 使用jenkins+centos+git+maven搭建持续集成环境自动化部署分布式服务 [购买] 
+26. 使用docker+compose+jenkins+gitlab+spring cloud实现微服务的编排、持续集成和动态扩容 [购买]
+27. 使用FastDFS搭建分布式文件系统（高可用、负载均衡）[购买]
+28. 搭建高可用nginx集群和Tomcat负载均衡 [购买]
+29. 搭建可扩展的ActiveMQ高可用集群 [购买]
+30. 实现Mysql数据库的主从复制、读写分离、分表分库、负载均衡和高可用 [购买]
+31. 搭建高可用redis集群实现分布式缓存 [购买]
 32. [Spring整合Elastic search实现全文检索](https://gitee.com/shenzhanwang/Spring-elastic_search)
 #### 特别篇：分布式事务和并发控制
-33. 基于可靠消息最终一致性实现分布式事务（activeMQ）[购买](http://t.cn/Ai8YLPBL)
-34. 使用TCC框架实现分布式事务（dubbo版）[购买](http://t.cn/Ai8YLJiN)
-35. 使用TCC框架实现分布式事务（Spring Cloud版）[购买](http://t.cn/Ai8YLnVP)
-36. 决战高并发：数据库锁机制和事务隔离级别的实现![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题") [购买](http://t.cn/Ai8YyAQE)
-37. 决战高并发：使用redis实现分布式锁  ![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题")[购买](http://t.cn/Ai8Y4bER)
-38. 决战高并发：使用zookeeper实现分布式锁 [购买](http://t.cn/Ai8Y4Cuq)
-39. 决战高并发：Java多线程编程实例 [购买](http://t.cn/Ai8Y4s0r)
-40. 决战高并发：使用netty实现高性能NIO通信 [购买](http://t.cn/Ai8Ybq3e)
+33. 基于可靠消息最终一致性实现分布式事务（activeMQ）[购买]
+34. 使用TCC框架实现分布式事务（dubbo版）[购买]
+35. 使用TCC框架实现分布式事务（Spring Cloud版）[购买]
+36. 决战高并发：数据库锁机制和事务隔离级别的实现 [购买] ![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题")
+37. 决战高并发：使用redis实现分布式锁 [购买] ![输入图片说明](https://img.shields.io/badge/-%E7%B2%BE%E5%93%81-orange.svg "在这里输入图片标题")
+38. 决战高并发：使用zookeeper实现分布式锁 [购买] 
+39. 决战高并发：Java多线程编程实例 [购买]
+40. 决战高并发：使用netty实现高性能NIO通信 [购买]
 
-### 快捷入口
-[我的网店](http://t.cn/Ai8YycFz)
-
-[购买全套](http://t.cn/Ai8YG9m4)
+### 可私信或加QQ付费获取源码
+![输入图片说明](https://images.gitee.com/uploads/images/2019/0802/083936_7a2d2b52_1110335.png "QQ截图20190802083338.png")

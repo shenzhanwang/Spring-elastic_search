@@ -17,7 +17,7 @@ public class QueryCommand {
 	//返回字段
 	private String return_filed;
 	//切面检索域
-	private String[] facetFields;
+	private String facetField;
 	//时间切面
 	private String facetDateFiled;
 	//切面增长步长
@@ -85,12 +85,12 @@ public class QueryCommand {
 		this.return_filed = return_filed;
 	}
 
-	public String[] getFacetFields() {
-		return facetFields;
+	public String getFacetField() {
+		return facetField;
 	}
 
-	public void setFacetFields(String[] facetFields) {
-		this.facetFields = facetFields;
+	public void setFacetField(String facetField) {
+		this.facetField = facetField;
 	}
 
 	public String getFacetQuery() {

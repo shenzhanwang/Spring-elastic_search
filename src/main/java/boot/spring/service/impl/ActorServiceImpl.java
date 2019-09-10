@@ -11,13 +11,9 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import boot.spring.elasticindex.ActorIndex;
-import boot.spring.elasticindex.SougoulogIndex;
 import boot.spring.mapper.ActorMapper;
 import boot.spring.po.Actor;
 import boot.spring.poi.WriteExcel;
-import boot.spring.repository.ActorRepository;
-import boot.spring.repository.SougoulogRepository;
 import boot.spring.service.ActorService;
 
 import com.github.pagehelper.PageHelper;
@@ -28,12 +24,6 @@ public class ActorServiceImpl implements ActorService{
 	@Autowired
 	public ActorMapper actorMapper;
 	
-	@Autowired
-	ActorRepository actorRepository;
-	
-	@Autowired
-	SougoulogRepository sougoulogRepository;
-	    
 	public Actor getActorByid(short id) {
 		Actor a=actorMapper.getactorbyid(id);
 		return a;
@@ -41,13 +31,6 @@ public class ActorServiceImpl implements ActorService{
 
 	public Actor updateactor(Actor a) {
 		actorMapper.updateActorbyid(a);
-		ActorIndex index = new ActorIndex();
-		index.setId(a.getId());
-		index.setFirstName(a.getFirst_name());
-		index.setLastName(a.getLast_name());
-		String dates = a.getLast_update();
-		index.setLastUpdate(dates.substring(0, 10));
-		actorRepository.save(index);
 		return a;
 	}
 
@@ -64,26 +47,12 @@ public class ActorServiceImpl implements ActorService{
 
 	public Actor addactor(Actor a) {
 		actorMapper.insertActor(a);
-		ActorIndex index = new ActorIndex();
-		index.setId(a.getId());
-		index.setFirstName(a.getFirst_name());
-		index.setLastName(a.getLast_name());
-		String dates = a.getLast_update();
-		index.setLastUpdate(dates.substring(0, 10));
-		actorRepository.save(index);
 		return a;
 	}
 
 	public void delete(short id) {
 		Actor a = actorMapper.getactorbyid(id);
-		ActorIndex index = new ActorIndex();
-		index.setId(a.getId());
-		index.setFirstName(a.getFirst_name());
-		index.setLastName(a.getLast_name());
-		String dates = a.getLast_update();
-		index.setLastUpdate(dates.substring(0, 10));
 		actorMapper.delete(id);
-		actorRepository.delete(index);
 	}
 
 	public InputStream getInputStream() throws Exception {

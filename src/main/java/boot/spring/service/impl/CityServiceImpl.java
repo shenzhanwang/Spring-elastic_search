@@ -4,18 +4,14 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import boot.spring.mapper.CityMapper;
-import boot.spring.mapper.CountryMapper;
 import boot.spring.po.City;
 import boot.spring.po.Country;
-import boot.spring.repository.CityRepository;
 import boot.spring.service.CityService;
 
 import com.github.pagehelper.PageHelper;
@@ -25,9 +21,6 @@ import com.github.pagehelper.PageHelper;
 public class CityServiceImpl implements CityService{
 	@Autowired
 	CityMapper citymapper;
-	
-	@Autowired
-	CountryMapper countryMapper;
 	
 	public List<City> getCitylist() {
 		List<City> l=citymapper.getCitys();
@@ -51,9 +44,5 @@ public class CityServiceImpl implements CityService{
 	public Country getCountryCitys(String Countryname) {
 		return citymapper.getCitysbyCountry(Countryname);
 	}
-
-	@Override
-	public List<Country> listCountrys() {
-		return countryMapper.selectCountrys();
-	}
+	
 }

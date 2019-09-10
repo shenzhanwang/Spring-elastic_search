@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import boot.spring.elasticindex.ActorIndex;
-import boot.spring.elasticindex.SougoulogIndex;
 import boot.spring.mapper.SougoulogMapper;
 import boot.spring.pagemodel.ActorGrid;
 import boot.spring.pagemodel.MSG;

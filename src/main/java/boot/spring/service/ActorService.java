@@ -3,8 +3,6 @@ package boot.spring.service;
 import java.io.InputStream;
 import java.util.List;
 
-import boot.spring.elasticindex.ActorIndex;
-import boot.spring.elasticindex.SougoulogIndex;
 import boot.spring.po.Actor;
 
 
