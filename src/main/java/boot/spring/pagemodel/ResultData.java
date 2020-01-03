@@ -8,11 +8,11 @@ public class ResultData {
 	
 	Integer start;
 	
-	Integer maxFieldCount;
-	
 	Date qtime;
 	
-	List<Object> data;
+	Object data;
+	
+	String scrollid;
 
 	public Long getNumberFound() {
 		return NumberFound;
@@ -30,21 +30,6 @@ public class ResultData {
 		this.start = start;
 	}
 
-	public Integer getMaxFieldCount() {
-		return maxFieldCount;
-	}
-
-	public void setMaxFieldCount(Integer maxFieldCount) {
-		this.maxFieldCount = maxFieldCount;
-	}
-
-	public List<Object> getData() {
-		return data;
-	}
-
-	public void setData(List<Object> data) {
-		this.data = data;
-	}
 
 	public Date getQtime() {
 		return qtime;
@@ -53,5 +38,21 @@ public class ResultData {
 	public void setQtime(Date qtime) {
 		this.qtime = qtime;
 	}
-	
+
+	public Object getData() {
+		return data;
+	}
+
+	public void setData(Object data) {
+		this.data = data;
+	}
+
+	public String getScrollid() {
+		return scrollid;
+	}
+
+	public void setScrollid(String scrollid) {
+		this.scrollid = scrollid;
+	}
+    
 }

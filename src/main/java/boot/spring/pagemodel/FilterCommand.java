@@ -2,50 +2,36 @@ package boot.spring.pagemodel;
 
 import java.util.List;
 
-import boot.spring.elastic.search.querytypes.FuzzyQuery;
-import boot.spring.elastic.search.querytypes.MatchQuery;
-import boot.spring.elastic.search.querytypes.RangeQuery;
-import boot.spring.elastic.search.querytypes.TermQuery;
 
 public class FilterCommand {
-	List<RangeQuery> ranges;
+	String startdate;
 	
-	List<TermQuery> terms;
+	String enddate;
 	
-	List<FuzzyQuery> fuzzys;
-	
-	List<MatchQuery> matches;
-	
-	public List<RangeQuery> getRanges() {
-		return ranges;
+	String field;
+
+	public String getStartdate() {
+		return startdate;
 	}
 
-	public void setRanges(List<RangeQuery> ranges) {
-		this.ranges = ranges;
+	public void setStartdate(String startdate) {
+		this.startdate = startdate;
 	}
 
-	public List<TermQuery> getTerms() {
-		return terms;
+	public String getEnddate() {
+		return enddate;
 	}
 
-	public void setTerms(List<TermQuery> terms) {
-		this.terms = terms;
+	public void setEnddate(String enddate) {
+		this.enddate = enddate;
 	}
 
-	public List<FuzzyQuery> getFuzzys() {
-		return fuzzys;
+	public String getField() {
+		return field;
 	}
 
-	public void setFuzzys(List<FuzzyQuery> fuzzys) {
-		this.fuzzys = fuzzys;
-	}
-
-	public List<MatchQuery> getMatches() {
-		return matches;
-	}
-
-	public void setMatches(List<MatchQuery> matches) {
-		this.matches = matches;
+	public void setField(String field) {
+		this.field = field;
 	}
 	
 }

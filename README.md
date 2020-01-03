@@ -3,179 +3,47 @@
 ### 介绍
 Spring boot整合elastic search 6.8.1实现全文检索。主要包含以下特性：
 
-1. 全文检索的实现主要包括构建索引、高级搜索、文本分词三个模块；
-2. 索引的构建有增量更新和全量更新，一般第一次全量更新，以后增量更新；
-3. 使用 **elasticsearch-rest-high-level-client** 来操作elasticsearch，构建索引时，根据实际情况考虑哪些字段需要分词，哪些不需要分词，这会影响搜索结果。当构建索引和搜索时，都需要经过“分析”，而分词是分析的一个环节。
-![输入图片说明](https://images.gitee.com/uploads/images/2019/0805/082846_8cf33cda_1110335.png "微信截图_20190805082826.png")
-4. 高级搜索实现了以下几种：
-    - 普通查询,先分词再精准搜索：matchQuery
-    - 精准查询,不分词直接搜索：termQuery
-    - 模糊查询,搜索字符串接近的词：fuzzyQuery
-    - 布尔查询,使用布尔运算组合多个查询条件：boolQuery
-    - 范围查询：rangeQuery
-    - 前缀查询：prefixQuery
-    - 通配符查询：wildcardQuery
-    - 多字段搜索,指定多个字段进行搜索:multi_match 
-    - 全字段搜索，es自带的全字段搜索:query_string 
+1. 全文检索的实现主要包括构建索引、高级搜索、聚集统计、数据建模四个模块；
+2. 使用 **elasticsearch-rest-high-level-client** 来操作elasticsearch，构建索引时，根据实际情况考虑哪些字段需要分词，哪些不需要分词，这会影响搜索结果。使用IK分词器虽然能解决一些中文分词的问题，但是由于分词的粒度不够细，导致很多词语可能搜不到。例如ik分词器在构建索引“三国无双”时，会把“三国”“无双”存起来建索引，但是搜索“国无”时，搜不出来，因此，我们采用把文本拆分到最细粒度来进行分词，从而最大限度地搜索到相关结果。详情参考：[如何手动控制分词粒度提高搜索的准确性](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/%E5%A6%82%E4%BD%95%E6%89%8B%E5%8A%A8%E6%8E%A7%E5%88%B6%E5%88%86%E8%AF%8D%E7%B2%92%E5%BA%A6%E6%8F%90%E9%AB%98%E6%90%9C%E7%B4%A2%E7%9A%84%E5%87%86%E7%A1%AE%E6%80%A7?sort_id=1727039)
+3. 高级搜索实现了以下几种：
+    - 多字段搜索,指定多个字段进行搜索:query_string，支持高亮显示
     - 经纬度搜索:distanceQuery
-    - 日期分面搜索,使用聚集实现，统计每个区间文档的数目:dateHistogramAggregation
-5. 文本分词使用了IK分词器：https://github.com/medcl/elasticsearch-analysis-ik
-6. 原始数据提交到倒排索引中以前，es可以对原始数据进行一系列的转换操作，这个过程叫做分析。一个完整的分析过程，要经过大于等于0个字符过滤器，一个分词器，大于等于0个分词过滤器组成。在搜索的时候，根据搜索方法的不同也可以选择是否进行经过分析过程。通常match搜索要经过分析，term搜索则不用。
-
+    - 范围过滤,对搜索结果进一步按照范围进行条件过滤：rangeQuery
+4. 搜索结果的展示提供了普通分页和滚动分页两种实现
+5. 聚集统计包含词条聚集、日期直方图聚集、范围聚集，并使用chart.js进行可视化
+6. 数据建模部分实现了嵌套对象的使用，查询时无需join性能较好，但是在建索引时就要把关联数据join好嵌套进去。
 7. swagger入口：http://localhost:8080/swagger-ui.html
-### 文档间的关系
-- 使用对象存储文档间的关系，仅适用于一对一的场景。因为存储一对多的时候，搜索会出现跨对象的匹配，影响结果的准确性。
-- 嵌套类型可以存储一对多的文档关系，但是把所有子表的数据塞到父表中，会降低系统的性能。子文档的更新需要重建整个索引。
-- 定义父子关系用于处理一对多的文档关系，在子文档中添加一个_parent字段指向父文档，相当于一个外键。父子文档会被路由到
-  同一个分片，查询时需要将文档进行连接，效率低于嵌套，但是修改文档时索引不用重建。
-- 反规范化通过复制数据来避免表连接，但是需要更多空间。反规范化是唯一能用于解决多对多的表关系，可以将多对多转化为多个
-  一对多。由于数据被复制，导致聚集和查询计算结果拥有重复数据导致结果不准确。
-### 集群搭建
-我们在centos7搭建一个三台机器的elastic search集群，ip分别为172.16.3.151，172.16.3.152，172.16.3.153.
-1. 关闭防火墙和selinux
-2. 下载rpm包，运行rpm -ivh elasticsearch-6.8.1
-3. 修改每个节点的elasticsearch.yml，在/etc/elasticsearch目录下
-
-```
-cluster.name: wsz
-# 节点名，根据节点的不同给与不同名字
-node.name: hadoop1
-# 根据节点的实际ip填写
-network.host: 172.16.3.151
-# 节点的ip列表
-discovery.zen.ping.unicast.hosts: ["172.16.3.151", "172.16.3.152", "172.16.3.153"]
-# 控制集群在达到多少个节点之后才会开始复制分片，一般为集群节点数目
-gateway.recover_after_nodes: 3
-```
-4. 每个节点运行systemctl start elasticsearch.service
-5. 查看集群状态，访问http://172.16.3.151:9200/_cluster/state ，显示有三个节点，搭建成功。
-![输入图片说明](https://images.gitee.com/uploads/images/2019/0814/152002_3517b712_1110335.png "微信截图_20190814151942.png")
-
-### 索引数据的全量和增量更新
-更新索引数据可以通过调用es提供的API往里面灌数据，但是这样不够快。这里使用logstash向es的索引批量更新数据。
-### 安装logstash
-1. 下载对应的安装包，以WINDOWS为例，解压，打开根目录。
-2. 编辑Gemfile文件，修改软件源的地址为：source "https://gems.ruby-china.com/"
-3. 安装jdbc插件： .\logstash-plugin install --no-verify logstash-input-jdbc
-4. 编写全量导入的配置文件jdbc.conf：
-
-```
-input {
-  jdbc {
-    jdbc_driver_library => "D:\\m2\\org\\postgresql\\postgresql\\9.4.1212\\postgresql-9.4.1212.jar"
-    jdbc_driver_class => "org.postgresql.Driver"
-    jdbc_connection_string => "jdbc:postgresql://192.168.52.229:8110/dsdb"
-    jdbc_user => "xxxx"
-    jdbc_password => "xxxx"
-    jdbc_default_timezone => "Asia/Shanghai"
-  
-    statement => "SELECT sjdbh,ay,jjdwbh,scbjsj from t_sjd "
-    jdbc_paging_enabled => "true"
-    jdbc_page_size => "50000"
-	
-    record_last_run => true
-    use_column_value => false
-    tracking_column_type => "timestamp"
-    tracking_column => "sjc"
-    last_run_metadata_path => "./sjd"
-  }
-  
-  
-}
-
-filter {
-    ruby {   
-	   code => "event.set('scbjsj', event.get('scbjsj').time.localtime + 8*60*60)"   
-	 }  
-	 ruby {   
-	   code => "event.set('timestamp', event.get('@timestamp').time.localtime + 8*60*60)"   
-	 }  
-	 ruby {  
-	   code => "event.set('@timestamp',event.get('timestamp'))"  
-	 }  
-	 mutate {  
-       remove_field => ["timestamp"]  
-     } 
-}
-
-output {
-  stdout {
-    codec => rubydebug
-  }
-  
-elasticsearch {
-    hosts => "http://172.16.3.151:9200"
-    # index名
-    index => "sjd"
-    document_type=>"_doc"  
-    }
-
-}
-```
-在以上配置中，sjc字段是数据的时间戳，每次查询大于时间戳的数据进行增量更新。schedule配置更新频率。
- **注意：由于logstash默认采用UTC时间，导致导入的时间数据比我们晚八个小时，所以我们要在filter部分给时间字段加上八个小时，索引的数据才是正确的。** 
-如果想增量导入，我们根据表中的时间戳字段配合调度器实现，导入结束的时间戳会被写入文件，每次调度，会读取上次的最后的时间戳以后的新数据导入，配置文件如下：
-
-```
-input {
-  jdbc {
-    jdbc_driver_library => "D:\\m2\\org\\postgresql\\postgresql\\9.4.1212\\postgresql-9.4.1212.jar"
-    jdbc_driver_class => "org.postgresql.Driver"
-    jdbc_connection_string => "jdbc:postgresql://192.168.52.229:8110/dsdb"
-    jdbc_user => "xxxx"
-    jdbc_password => "xxxx"
-    jdbc_default_timezone => "Asia/Shanghai"
-  
-    statement => "SELECT sjdbh,ay,jjdwbh,scbjsj,sjc from t_sjd  where sjc > :sql_last_value"
-    jdbc_paging_enabled => "true"
-    jdbc_page_size => "50000"
-	
-    record_last_run => true
-    use_column_value => true
-    tracking_column_type => "timestamp"
-    tracking_column => "sjc"
-    last_run_metadata_path => "./sjd"
-    schedule => "* * * * *"
-  }
-}
-
-filter {
-	ruby {   
-	   code => "event.set('scbjsj', event.get('scbjsj').time.localtime + 8*60*60)"   
-	 }  
-	 ruby {   
-	   code => "event.set('timestamp', event.get('@timestamp').time.localtime + 8*60*60)"   
-	 }  
-	 ruby {  
-	   code => "event.set('@timestamp',event.get('timestamp'))"  
-	 }  
-	 mutate {  
-       remove_field => ["timestamp"]  
-     } 
-  
-}
-
-output {
-  stdout {
-    codec => rubydebug
-  }
-  
-  elasticsearch {
-    hosts => "http://172.16.3.151:9200"
-    # index名
-    index => "sjd"
-    document_type=>"_doc"  
-  }
-  
-  
-}
-```
-
-5. 在bin目录启动导入脚本：.\logstash -f .\jdbc.conf    **（如果想同时开启多个logstash，可以拷贝logstash到不同的目录下启动即可）** 
+### 相关WIKI
+#### kibana篇
+- [CentOS上Kibana安装指南](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/CentOS%E4%B8%8AKibana%E5%AE%89%E8%A3%85%E6%8C%87%E5%8D%97?sort_id=1717428)
+#### Logstash篇
+- [安装Logstash并全量导入数据库数据](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/%E5%AE%89%E8%A3%85Logstash%E5%B9%B6%E5%85%A8%E9%87%8F%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE%E5%BA%93%E6%95%B0%E6%8D%AE?sort_id=1717557)
+- [使用Logstash增量更新数据](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/%E4%BD%BF%E7%94%A8Logstash%E5%A2%9E%E9%87%8F%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE?sort_id=1717614)
+- [Logstash如何生成联合主键](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/Logstash%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90%E8%81%94%E5%90%88%E4%B8%BB%E9%94%AE?sort_id=1717654)
+- [logstash如何对敏感配置项加密](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/logstash%E5%A6%82%E4%BD%95%E5%AF%B9%E6%95%8F%E6%84%9F%E9%85%8D%E7%BD%AE%E9%A1%B9%E5%8A%A0%E5%AF%86?sort_id=1728432)
+- [logstash如何支持多开](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/logstash%E5%A6%82%E4%BD%95%E6%94%AF%E6%8C%81%E5%A4%9A%E5%BC%80?sort_id=1728531)
+- [如何将logstash自动更新服务配置为WINDOWS后台服务](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/%E5%A6%82%E4%BD%95%E5%B0%86logstash%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0%E6%9C%8D%E5%8A%A1%E9%85%8D%E7%BD%AE%E4%B8%BAWINDOWS%E5%90%8E%E5%8F%B0%E6%9C%8D%E5%8A%A1?sort_id=1818080)
+#### elastic search篇
+- [elastic search的REST服务（直接使用kibana运行）](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/elastic%20search%E7%9A%84REST%E6%9C%8D%E5%8A%A1%EF%BC%88%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8kibana%E8%BF%90%E8%A1%8C%EF%BC%89?sort_id=1725842)
+- [如何手动控制分词粒度提高搜索的准确性](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/%E5%A6%82%E4%BD%95%E6%89%8B%E5%8A%A8%E6%8E%A7%E5%88%B6%E5%88%86%E8%AF%8D%E7%B2%92%E5%BA%A6%E6%8F%90%E9%AB%98%E6%90%9C%E7%B4%A2%E7%9A%84%E5%87%86%E7%A1%AE%E6%80%A7?sort_id=1727039)
+- [如何防止跳词提高搜索的准确性](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/%E5%A6%82%E4%BD%95%E9%98%B2%E6%AD%A2%E8%B7%B3%E8%AF%8D%E6%8F%90%E9%AB%98%E6%90%9C%E7%B4%A2%E7%9A%84%E5%87%86%E7%A1%AE%E6%80%A7?sort_id=1733939)
+- [elastic search如何自定义日期格式](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/elastic%20search%E5%A6%82%E4%BD%95%E8%87%AA%E5%AE%9A%E4%B9%89%E6%97%A5%E6%9C%9F%E6%A0%BC%E5%BC%8F?sort_id=1734772)
+- [索引的doc value和field data的区别和联系](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/%E7%B4%A2%E5%BC%95%E7%9A%84doc%20value%E5%92%8Cfield%20data%E7%9A%84%E5%8C%BA%E5%88%AB%E5%92%8C%E8%81%94%E7%B3%BB?sort_id=1762216)
+- [如何修改es的堆内存大小加快索引查询性能](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9es%E7%9A%84%E5%A0%86%E5%86%85%E5%AD%98%E5%A4%A7%E5%B0%8F%E5%8A%A0%E5%BF%AB%E7%B4%A2%E5%BC%95%E6%9F%A5%E8%AF%A2%E6%80%A7%E8%83%BD?sort_id=1778490)
+- [如何搭建elastic search集群](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/%E5%A6%82%E4%BD%95%E6%90%AD%E5%BB%BAelastic%20search%E9%9B%86%E7%BE%A4?sort_id=1789195)
+- [elastic search如何处理多个索引之间的主外键关联
+](https://gitee.com/shenzhanwang/Spring-elastic_search/wikis/elastic%20search%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86%E5%A4%9A%E4%B8%AA%E7%B4%A2%E5%BC%95%E4%B9%8B%E9%97%B4%E7%9A%84%E4%B8%BB%E5%A4%96%E9%94%AE%E5%85%B3%E8%81%94?sort_id=1789201)
+![输入图片说明](https://images.gitee.com/uploads/images/2019/1205/084028_e7962b37_1110335.jpeg "微信图片_20191205083903.jpg")
 ### 效果图
-
-![输入图片说明](https://images.gitee.com/uploads/images/2019/0823/105906_0e51ea07_1110335.png "1.png")
-
+![输入图片说明](https://images.gitee.com/uploads/images/2019/1226/103749_26e8f1e2_1110335.gif "s.gif")
+![输入图片说明](https://images.gitee.com/uploads/images/2019/1227/084159_2df38df8_1110335.png "1577407262(1).png")
+![输入图片说明](https://images.gitee.com/uploads/images/2019/1227/083952_faa81787_1110335.png "1577407124(1).png")
+![输入图片说明](https://images.gitee.com/uploads/images/2019/1226/103916_d0f9bf4f_1110335.png "1577327499(1).png")
+![输入图片说明](https://images.gitee.com/uploads/images/2019/1226/103932_6fe4f3c0_1110335.png "1577327518(1).png")
+![输入图片说明](https://images.gitee.com/uploads/images/2019/1226/103950_7f751403_1110335.png "1577327531(1).png")
+![输入图片说明](https://images.gitee.com/uploads/images/2019/1227/084034_1ebafbc9_1110335.png "1577407143(1).png")
+![输入图片说明](https://images.gitee.com/uploads/images/2019/1226/104001_568e956d_1110335.png "1577327550(1).png")
+![输入图片说明](https://images.gitee.com/uploads/images/2019/1226/104013_78a63d0c_1110335.png "1577327579(1).png")
 ### 附录：个人作品索引目录（持续更新）
 
 #### 基础篇:职业化，从做好OA系统开始
