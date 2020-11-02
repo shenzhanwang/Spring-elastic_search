@@ -100,10 +100,10 @@ public class IndexController {
 		      },
 		      "analyzer": {
 		        "my_analyzer": {
-		          "filter": "my_filter",
-		          "char_filter": "",
 		          "type": "custom",
-		          "tokenizer": "my_tokenizer"
+		          "char_filter": "",
+		          "tokenizer": "my_tokenizer",
+		          "filter": "my_filter"
 		        }
 		      }
 		    }
@@ -119,7 +119,13 @@ public class IndexController {
 		          },
 		          "keywords": {
 		            "type": "text",
-		            "analyzer": "my_analyzer"
+		            "analyzer": "my_analyzer",
+		            "fields": {
+			            "keyword": {
+			              "type": "keyword",
+			              "ignore_above": 256
+			            }
+			        }
 		          },
 		          "rank": {
 		            "type": "integer"
@@ -130,7 +136,13 @@ public class IndexController {
 		          },
 		          "userid": {
 		            "type": "text",
-		            "analyzer": "my_analyzer"
+		            "analyzer": "my_analyzer",
+		            "fields": {
+			            "keyword": {
+			              "type": "keyword",
+			              "ignore_above": 256
+			            }
+			        }
 		          },
 		          "visittime": {
 		            "type": "date",
@@ -211,6 +223,15 @@ public class IndexController {
 			        {
 			            builder.field("type", "text");
 			            builder.field("analyzer", "my_analyzer");
+			            builder.startObject("fields");
+			            {
+			            	builder.startObject("keyword");{
+				            	builder.field("type", "keyword");
+					            builder.field("ignore_above", "256");
+			            	}
+			            	builder.endObject();
+			            }
+			            builder.endObject();
 			        }
 			        builder.endObject();
 			        builder.startObject("rank");
@@ -228,6 +249,15 @@ public class IndexController {
 			        {
 			            builder.field("type", "text");
 			            builder.field("analyzer", "my_analyzer");
+			            builder.startObject("fields");
+			            {
+			            	builder.startObject("keyword");{
+				            	builder.field("type", "keyword");
+					            builder.field("ignore_above", "256");
+			            	}
+			            	builder.endObject();
+			            }
+			            builder.endObject();
 			        }
 			        builder.endObject();
 			        builder.startObject("visittime");

@@ -38,7 +38,6 @@ import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.avg.AvgAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -84,13 +83,15 @@ public class SearchServiceImpl implements SearchService {
 		FilterCommand filter = request.getFilter();
 		if (filter != null) {
 			if (filter.getStartdate()!=null&&filter.getEnddate()!=null) {
-					builder.must(QueryBuilders.constantScoreQuery(QueryBuilders.rangeQuery(filter.getField()).from(filter.getStartdate()).to(filter.getEnddate())));
+					builder.filter(QueryBuilders.rangeQuery(filter.getField()).from(filter.getStartdate()).to(filter.getEnddate()));
 			}
 		}
 		// 排序
 		if(StringUtils.isNoneBlank(request.getQuery().getSort())){
 			searchSourceBuilder.sort(request.getQuery().getSort(), SortOrder.ASC);
 	    }
+		// 查询全部
+		searchSourceBuilder.trackTotalHits(true);
 	    searchSourceBuilder.query(builder);
 	    // 处理高亮
         HighlightBuilder highlightBuilder = new HighlightBuilder();
@@ -135,6 +136,7 @@ public class SearchServiceImpl implements SearchService {
 		BoolQueryBuilder builder = QueryBuilders.boolQuery().must(QueryBuilders.matchAllQuery());
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 		searchSourceBuilder.query(builder);
+		searchSourceBuilder.trackTotalHits(true);
 		searchRequest.source(searchSourceBuilder);
 		SearchResponse searchResponse = null;
 		try {
@@ -158,6 +160,7 @@ public class SearchServiceImpl implements SearchService {
 	        SearchResponse searchResponse = null;
 	        try {
 	            searchSourceBuilder.query(builder);
+	            searchSourceBuilder.trackTotalHits(true);
 	            searchRequest.source(searchSourceBuilder);
 	            int start = (pagenum - 1) * pagesize;
 	            searchSourceBuilder.from(start);
@@ -176,6 +179,7 @@ public class SearchServiceImpl implements SearchService {
 		BoolQueryBuilder builder = QueryBuilders.boolQuery()
 				.must(QueryBuilders.nestedQuery(path, QueryBuilders.matchQuery(field, value), ScoreMode.None));
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+		searchSourceBuilder.trackTotalHits(true);
 		searchSourceBuilder.query(builder);
 		int start = (pagenum - 1) * pagesize;
         searchSourceBuilder.from(start);
@@ -230,6 +234,7 @@ public class SearchServiceImpl implements SearchService {
 			searchSourceBuilder.sort(request.getQuery().getSort(), SortOrder.ASC);
 	    }
 	    searchSourceBuilder.query(builder);
+	    searchSourceBuilder.trackTotalHits(true);
 	    // 处理高亮
         HighlightBuilder highlightBuilder = new HighlightBuilder();
         highlightBuilder.field("*");
@@ -273,6 +278,7 @@ public class SearchServiceImpl implements SearchService {
 		}
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 		searchSourceBuilder.query(builder);
+		searchSourceBuilder.trackTotalHits(true);
 		int start = (pagenum - 1) * pagesize;
         searchSourceBuilder.from(start);
         searchSourceBuilder.size(pagesize);
@@ -299,6 +305,7 @@ public class SearchServiceImpl implements SearchService {
 		}
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 		searchSourceBuilder.query(builder);
+		searchSourceBuilder.trackTotalHits(true);
 		int start = (pagenum - 1) * pagesize;
         searchSourceBuilder.from(start);
         searchSourceBuilder.size(pagesize);

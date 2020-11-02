@@ -1,21 +1,34 @@
 package boot.spring.elastic.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class Client {
 	
+	@Value("${es.url}")
+	private String esUrl;
+	
 	@Bean
-	RestHighLevelClient configRestHighLevelClient(){
-		RestHighLevelClient client = new RestHighLevelClient(
-		        RestClient.builder(
-		                new HttpHost("172.16.3.151", 9200, "http"),
-		                new HttpHost("172.16.3.152", 9200, "http"),
-		                new HttpHost("172.16.3.153", 9200, "http")));
-		return client;
+	RestHighLevelClient configRestHighLevelClient() throws Exception {
+
+		String[] esUrlArr = esUrl.split(",");
+
+		List<HttpHost> httpHosts = new ArrayList<>();
+		for(String es : esUrlArr){
+			String[] esUrlPort = es.split(":");
+			httpHosts.add(new HttpHost(esUrlPort[0], Integer.parseInt(esUrlPort[1]), "http"));
+		}
+
+		return new RestHighLevelClient(
+		        RestClient.builder(httpHosts.toArray(new HttpHost[0]))
+				);
 	}
 }

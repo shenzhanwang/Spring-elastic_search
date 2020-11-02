@@ -1,0 +1,15 @@
+server:
+  port: 8080
+
+logging:
+  path: /var/log/sakila
+  level:
+    root: INFO
+    boot:
+      spring:
+        controller: DEBUG
+        
+es:
+  url: localhost:9200
+  
+    

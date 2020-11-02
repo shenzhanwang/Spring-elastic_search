@@ -1,5 +1,9 @@
 package boot.spring.controller;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -7,13 +11,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.util.IOUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -93,7 +106,7 @@ public class SearchController {
 	@ResponseBody
     public ResultData sougoulognumber() throws Exception {
     	SearchResponse rsp = searchService.matchAllSearch("sougoulog");
-    	Long total = rsp.getHits().getTotalHits();
+    	Long total = rsp.getHits().getTotalHits().value;
     	ResultData rd = new ResultData();
     	rd.setData(total);
     	return rd;
@@ -147,7 +160,7 @@ public class SearchController {
 		grid.setCurrent(current);
 		grid.setRowCount(rowCount);
 		grid.setRows(data);
-		grid.setTotal(hits.getTotalHits());
+		grid.setTotal(hits.getTotalHits().value);
 		return grid;
 	}	
 	
@@ -179,7 +192,7 @@ public class SearchController {
 		ResultData resultData = new ResultData();
 		resultData.setQtime(new Date());
 		resultData.setData(data);
-		resultData.setNumberFound(hits.getTotalHits());
+		resultData.setNumberFound(hits.getTotalHits().value);
 		resultData.setStart(request.getQuery().getStart());
 		return resultData;
 	}
@@ -212,7 +225,7 @@ public class SearchController {
 		ResultData resultData = new ResultData();
 		resultData.setQtime(new Date());
 		resultData.setData(data);
-		resultData.setNumberFound(hits.getTotalHits());
+		resultData.setNumberFound(hits.getTotalHits().value);
 		resultData.setStart(request.getQuery().getStart());
 		resultData.setScrollid(scrollid);
 		return resultData;
@@ -233,8 +246,8 @@ public class SearchController {
 		}
 		DataTable<Object> grid = new DataTable<Object>();
 		grid.setDraw(UUID.randomUUID().toString());
-		grid.setRecordsFiltered(hits.getTotalHits());
-		grid.setRecordsTotal(hits.getTotalHits());
+		grid.setRecordsFiltered(hits.getTotalHits().value);
+		grid.setRecordsTotal(hits.getTotalHits().value);
 		grid.setData(data);
 		grid.setLength(geo.getPagesize());
 		return grid;
@@ -284,7 +297,7 @@ public class SearchController {
 		grid.setCurrent(current);
 		grid.setRowCount(rowCount);
 		grid.setRows(data);
-		grid.setTotal(hits.getTotalHits());
+		grid.setTotal(hits.getTotalHits().value);
 		return grid;
 	}	
 
@@ -303,9 +316,9 @@ public class SearchController {
 		}
 		DataTable<Object> grid = new DataTable<Object>();
 		grid.setDraw(UUID.randomUUID().toString());
-		grid.setRecordsFiltered(hits.getTotalHits());
+		grid.setRecordsFiltered(hits.getTotalHits().value);
 		grid.setLength(param.getPagesize());
-		grid.setRecordsTotal(hits.getTotalHits());
+		grid.setRecordsTotal(hits.getTotalHits().value);
 		grid.setData(data);
 		return grid;
 	}
@@ -325,10 +338,87 @@ public class SearchController {
 		}
 		DataTable<Object> grid = new DataTable<Object>();
 		grid.setDraw(UUID.randomUUID().toString());
-		grid.setRecordsFiltered(hits.getTotalHits());
-		grid.setRecordsTotal(hits.getTotalHits());
+		grid.setRecordsFiltered(hits.getTotalHits().value);
+		grid.setRecordsTotal(hits.getTotalHits().value);
 		grid.setLength(param.getPagesize());
 		grid.setData(data);
 		return grid;
 	}	
+
+    @ApiOperation("导出搜索结果为Excel")
+	@RequestMapping(value="/exportExcel",method = RequestMethod.POST)
+	@ResponseBody
+	public void exportExcel(HttpServletResponse response, @RequestBody ElasticSearchRequest query) {
+		try {
+			HSSFWorkbook workbook = new HSSFWorkbook();						// 创建工作簿对象
+			HSSFSheet sheet = workbook.createSheet("sheet1");	
+			// 搜索结果
+			SearchResponse searchResponse = searchService.query_string(query);
+			SearchHits hits = searchResponse.getHits();
+			SearchHit[] searchHits = hits.getHits();
+			if (searchHits.length>0){
+				// 写列头
+				SearchHit first = searchHits[0];
+				HSSFRow frow = sheet.createRow(0);
+				Map<String, Object> fmap = first.getSourceAsMap();
+				int fcol = 0;
+				for(String key : fmap.keySet())
+				{
+						if (key.contains("@"))
+						{	
+							continue;
+						} else {
+							HSSFCell  cell = null;   //设置单元格的数据类型
+							cell = frow.createCell(fcol, HSSFCell.CELL_TYPE_STRING);
+							cell.setCellValue(key);
+						}
+						fcol++;
+				}
+				
+				for (int i = 0; i< searchHits.length; i++) {
+					SearchHit hit = searchHits[i];
+					HSSFRow row = sheet.createRow(i+1);
+					
+					Map<String, Object> map = hit.getSourceAsMap();
+					
+					int col = 0;
+					for(String key : map.keySet())
+				    {
+						if (key.contains("@"))
+							continue;
+						if (map.get(key) == null && !("id".equals(key))) {
+							HSSFCell  cell = null;   //设置单元格的数据类型
+							cell = row.createCell(col, HSSFCell.CELL_TYPE_STRING);
+							cell.setCellValue("");
+						}  else {
+								HSSFCell  cell = null;   //设置单元格的数据类型
+								cell = row.createCell(col, HSSFCell.CELL_TYPE_STRING);
+								String cellvalue = map.get(key).toString();
+								cell.setCellValue(cellvalue);
+						}
+						col++;
+				    }
+				}
+			} else {
+				HSSFRow frow = sheet.createRow(0);
+			}
+			ByteArrayOutputStream os=new ByteArrayOutputStream();
+		        try {
+		            workbook.write(os);
+		        } catch (IOException e) {
+		            e.printStackTrace();
+		        }
+		       
+		        byte[] content=os.toByteArray();
+		        InputStream is=new ByteArrayInputStream(content);
+				response.setContentType("application/vnd.ms-excel");
+				response.setHeader("Content-Disposition", "attachment;filename=AllUsers.xls");
+				ServletOutputStream output = response.getOutputStream();
+				IOUtils.copy(is, output);
+		} catch (HttpMessageNotReadableException hex) {
+			hex.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }
