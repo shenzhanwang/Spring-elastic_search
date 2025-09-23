@@ -1,0 +1,972 @@
+### 3.1.1
+PUT mysougoulog
+{
+  "settings": {
+    "number_of_shards": "5",
+    "number_of_replicas": "1"
+  },
+  "mappings": {
+    "properties": {
+      "userid": {
+        "type": "text"
+      }
+    }
+  }
+}
+
+PUT mysougoulog/_settings
+{
+  "settings": {
+    "number_of_replicas": "2"
+  }
+}
+
+GET mysougoulog/_mapping
+
+PUT mysougoulog/_mapping
+{
+  "properties": {
+    "key": {
+      "type": "text"
+    }
+  }
+}
+
+### 3.1.2
+PUT mysougoulog/_mapping
+{
+  "properties": {
+    "rank": {
+      "type": "long"
+    }
+  }
+}
+
+PUT mysougoulog/_mapping
+{
+  "properties": {
+    "visittime": {
+      "type": "date"
+    }
+  }
+}
+
+PUT sougoulog-date
+{
+  "mappings": {
+"properties": {
+      "visittime": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss ||epoch_millis"
+      }
+}
+  }
+}
+
+PUT keyword-test
+{
+  "mappings": {
+"properties": {
+      "name": {
+        "type": "keyword"
+      }
+}
+  }
+}
+
+PUT test-1
+{
+  "mappings": {
+"properties": {
+      "key": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      }
+}
+  }
+}
+
+PUT test-2
+{
+  "mappings": {
+    "properties": {
+      "sex": {
+        "type": "boolean"
+      }
+    }
+  }
+}
+
+PUT geo-1
+{
+  "mappings": {
+    "properties": {
+      "location": {
+        "type": "geo_point"
+      }
+    }
+  }
+}
+
+PUT obj-test
+{
+  "mappings": {
+    "properties": { 
+      "region": {
+        "type": "keyword"
+      },
+      "manager": { 
+        "properties": {
+          "age":  { "type": "integer" },
+          "name": { 
+            "properties": {
+              "first": { "type": "text" },
+              "last":  { "type": "text" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+PUT shopping/_doc/1
+{
+  "tags":  [ "elastic", "search" ], 
+  "lists": [ 
+    {
+      "name": "mylist",
+      "description": "language list"
+    },
+    {
+      "name": "testlist",
+      "description": "testlist"
+    }
+  ]
+}
+
+PUT binary-test
+{
+  "mappings": {
+    "properties": {
+      "pic": {
+        "type": "binary"
+      }
+    }
+  }
+}
+
+### 3.1.3
+PUT ignore-test
+{
+  "mappings": {
+    "properties": {
+      "age": {
+        "type": "integer"
+      },
+      "born": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss",
+        "ignore_malformed": true
+      }
+    }
+  }
+}
+
+PUT ignore-test/_doc/1
+{
+  "age":22,
+  "born":"www"
+}
+
+PUT ignore-test/_doc/2
+{
+  "age": "test",
+  "born":"2020-01-01 00:00:05"
+}
+
+PUT ignore-test/_doc/3
+{
+  "age": 44,
+  "born":"2020-01-01 00:00:05"
+}
+
+GET ignore-test/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+PUT ignore-all-fields
+{
+  "settings": {
+    "index.mapping.ignore_malformed": true 
+  },
+  "mappings": {
+    "properties": {
+      "age": {
+        "type": "integer"
+      },
+      "born": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      }
+    }
+  }
+}
+
+### 3.1.4 
+PUT copy-field
+{
+  "mappings": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "copy_to": "full_text" 
+      },
+      "author": {
+        "type": "text",
+        "copy_to": "full_text" 
+      },
+      "abstract": {
+        "type": "text",
+        "copy_to": "full_text"
+      },
+      "full_text": {
+        "type": "text"
+      }
+    }
+  }
+}
+
+PUT copy-field/_doc/1
+{
+  "title": "how to use es",
+  "author": "Smith",
+  "abstract":"this is the abstract"
+}
+
+POST copy-field/_search
+{
+  "query": {
+    "match": {
+      "full_text": "smith"
+    }
+  }
+}
+
+PUT copy-store-field
+{
+  "mappings": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "copy_to": "full_text" 
+      },
+      "author": {
+        "type": "text",
+        "copy_to": "full_text" 
+      },
+      "abstract": {
+        "type": "text",
+        "copy_to": "full_text"
+      },
+      "full_text": {
+        "type": "text",
+        "store": true
+      }
+    }
+  }
+}
+
+PUT copy-store-field/_doc/1
+{
+  "title": "how to use es",
+  "author": "Smith",
+  "abstract":"this is the abstract"
+}
+
+POST copy-store-field/_search
+{
+  "stored_fields": ["full_text"]
+}
+
+### 3.1.5
+PUT date-test/_doc/1
+{
+  "create_date": "2015/09/02 00:00:00"
+}
+
+GET date-test/_mapping
+
+PUT date-test2
+{
+  "mappings": {
+"dynamic_date_formats": ["yyyy-MM-dd HH:mm:ss","yyyy-MM-dd"]
+  }
+}
+
+PUT date-test2/_doc/1
+{
+  "create_date": "2015-09-02 00:00:00",
+  "born":"2020-01-01"
+}
+
+GET date-test2/_mapping
+
+PUT number-test
+{
+  "mappings": {
+"numeric_detection": true
+  }
+}
+
+PUT number-test/_doc/1
+{
+  "price": "2.5",
+  "amount":"2"
+}
+
+GET number-test/_mapping
+
+PUT dynamic-type
+{
+  "mappings": {
+"dynamic_templates": [
+      {
+        "integers": {
+          "match_mapping_type": "long",
+          "mapping": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "strings": {
+          "match_mapping_type": "string",
+          "mapping": {
+            "type": "text",
+            "fields": {
+              "raw": {
+                "type":  "keyword",
+                "ignore_above": 512
+              }
+            }
+          }
+        }
+      }
+]
+  }
+}
+
+PUT dynamic-type/_doc/1
+{
+  "age": 5, 
+  "name": "li yan hong" 
+}
+
+GET dynamic-type/_mapping
+
+PUT dynamic-name
+{
+  "mappings": {
+"dynamic_templates": [
+      {
+        "longs_as_strings": {
+          "match_mapping_type": "string",
+          "match":   "long_*",
+          "unmatch": "*_text",
+          "mapping": {
+            "type": "long"
+          }
+        }
+      }
+]
+  }
+}
+
+PUT dynamic-name/_doc/1
+{
+  "long_num": "5", 
+  "long_text": "22"
+}
+
+GET dynamic-name
+
+PUT dynamic-obj
+{
+  "mappings": {
+"dynamic_templates": [
+      {
+        "full_name": {
+          "path_match":   "name.*",
+          "path_unmatch": "*.middle",
+          "mapping": {
+            "type":    "keyword"
+          }
+        }
+      }
+]
+  }
+}
+
+PUT dynamic-obj/_doc/1
+{
+  "name": {
+"first":  "John",
+"middle": "Winston",
+"last":   "Lennon"
+  }
+}
+
+GET dynamic-obj
+
+### 3.2.1
+PUT test-3-2-1
+{
+  "mappings": {
+"properties": {
+      "id": {
+        "type": "integer"
+      },
+      "sex": {
+        "type": "boolean"
+      },
+      "name": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "born": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      },
+      "location": {
+        "type": "geo_point"
+      }
+}
+  }
+}
+
+POST test-3-2-1/_doc/1
+{
+  "id": "1",
+  "sex": true,
+  "name": "张三",
+  "born": "2020-09-18 00:02:20",
+  "location": { 
+"lat": 41.12,
+"lon": -71.34
+  }
+}
+
+GET test-3-2-1/_doc/1
+
+POST test-3-2-1/_update/1
+{
+  "doc": {
+"sex": false,
+"born": "2020-02-24 00:02:20"
+  }
+}
+
+DELETE test-3-2-1/_doc/1
+
+### 3.2.2
+PUT test-3-2-1/_doc/1?if_seq_no=26&if_primary_term=3
+{
+  "id": "1",
+  "sex": false,
+  "name": "张三",
+  "born": "2020-09-11 00:02:20",
+  "location": {
+"lat": 41.12,
+"lon": -71.34
+  }
+}
+
+### 3.2.3
+POST test-3-2-1/_bulk
+{"index":{"_id":"3"}}
+{"id":"3","name":"王五","sex":true,"born":"2020-09-14 00:02:20","location":{"lat":11.12,"lon":-71.34}}
+{"index":{"_id":"4"}}
+{"id":"4","name":"李四","sex":false,"born":"2020-10-14 00:02:20","location":{"lat":11.12,"lon":-71.34}}
+{"index":{"_id":"5"}}
+{"id":"5","name":"黄六","sex":false,"born":"2020-11-14 00:02:20","location":{"lat":11.12,"lon":-71.34}}
+
+POST test-3-2-1/_bulk
+{"index":{"_id":"2"}}
+{"id":"2","name":"赵二","sex":true,"born":"2020-09-14 00:02:20","location":{"lat":11.12,"lon":-71.34}}
+{"create":{"_id":"4"}}
+{"id":"4","name":"李四","sex":false,"born":"2020-10-14 00:02:20","location":{"lat":11.12,"lon":-71.34}}
+{"update":{"_id":"5"}}
+{ "doc" : {"sex" : "false","born" : "2020-01-01 00:02:20"} }
+{"delete":{"_id":"5"}}
+
+PUT newindex-3-1-3
+{
+  "settings": {
+    "number_of_shards": "5",
+    "number_of_replicas": "1"
+  }
+}
+
+POST _reindex
+{
+  "source": {
+    "index": "test-3-2-1"
+  },
+  "dest": {
+    "index": "newindex-3-1-3"
+  }
+}
+
+### 3.3.2 
+PUT test-3-3-2
+{
+  "settings": {
+"number_of_shards": "3",
+"number_of_replicas": "1"
+  },
+  "mappings": {
+"_routing": {
+      "required": true
+}
+  }
+}
+
+POST test-3-3-2/_doc/1?routing=张三&refresh=true
+{
+  "id": "1",
+  "name": "张三",
+  "subject": "语文",
+  "score":100
+}
+
+GET test-3-3-2/_doc/1?routing=张三
+
+POST test-3-3-2/_update/1?routing=张三&refresh=true
+{
+  "doc": {
+"score": 120
+  }
+}
+
+DELETE test-3-3-2/_doc/1?routing=张三
+
+GET test-3-3-2/_search?routing=张三
+{
+  "query": {
+"match_all": {}
+  }
+}
+
+GET test-3-3-2/_search_shards?routing=张三
+
+###3.4.1
+POST logs-1/_doc/10001
+{
+  "visittime": "10:00:00",
+  "keywords": "[世界杯]",
+  "rank": 18,
+  "clicknum": 13,
+  "id": 10001,
+  "userid": "2982199073774412",
+  "key": "10001"
+}
+
+POST logs-2/_doc/10002
+{
+  "visittime": "11:00:00",
+  "keywords": "[奥运会]",
+  "rank": 11,
+  "clicknum": 2,
+  "id": 10002,
+  "userid": "2982199023774412",
+  "key": "10002"
+}
+
+POST /_aliases
+{
+  "actions": [
+{
+      "add": {
+        "index": "logs-1",
+        "alias": "logs"
+      }
+},
+{
+      "add": {
+        "index": "logs-2",
+        "alias": "logs"
+      }
+}
+  ]
+}
+
+GET _alias/logs
+
+POST /_aliases
+{
+  "actions" : [
+{ "remove": { "index" : "logs-1", "alias" : "logs" } }
+  ]
+}
+
+POST /_aliases
+{
+  "actions" : [
+{ "add" : { "index" : "logs*", "alias" : "logs" } }
+  ]
+}
+
+### 3.4.2
+POST /_aliases
+{
+  "actions": [
+{
+      "add": {
+        "index": "logs*",
+        "alias": "logs",
+        "filter": {
+          "range": {
+            "clicknum": {
+              "gte": 10
+            }
+          }
+        }
+      }
+}
+  ]
+}
+
+POST logs/_search
+{
+  "query": {
+"match_all": {}
+  }
+}
+
+### 3.4.3
+POST /_aliases
+{
+  "actions": [
+{
+      "add": {
+        "index": "logs-1",
+        "alias": "logs",
+        "routing": "1"
+      }
+}
+  ]
+}
+
+POST /_aliases
+{
+  "actions": [
+{
+      "add": {
+        "index": "logs-1",
+        "alias": "logs",
+        "search_routing": "1,2",
+        "index_routing": "2"
+      }
+}
+  ]
+}
+
+POST /_aliases
+{
+  "actions": [
+{
+      "add": {
+        "index": "logs-1",
+        "alias": "logs",
+        "is_write_index": true
+      }
+},
+{
+      "add": {
+        "index": "logs-2",
+        "alias": "logs"
+      }
+}
+  ]
+}
+
+### 3.5
+PUT /log1
+{
+  "aliases": {
+    "logs-all": {}
+  }
+}
+
+PUT logs-all/_doc/1?refresh
+{
+  "visittime": "10:00:00",
+  "keywords": "[世界杯]",
+  "rank": 18,
+  "clicknum": 13,
+  "id": 10001,
+  "userid": "2982199073774412",
+  "key": "10001"
+}
+
+PUT logs-all/_doc/2?refresh
+{
+  "visittime": "11:00:00",
+  "keywords": "[杯]",
+  "rank": 20,
+  "clicknum": 12,
+  "id": 1121,
+  "userid": "298219d9073774412",
+  "key": "2"
+}
+
+POST /logs-all/_rollover/log2
+{
+  "conditions": {
+    "max_age":   "7d",
+    "max_docs":  1,
+    "max_size":  "5gb"
+  }
+}
+
+PUT /log-000001
+{
+  "aliases": {
+    "logseries": {}
+  }
+}
+
+POST /logseries/_rollover
+{
+  "conditions": {
+    "max_age":   "7d",
+    "max_docs":  1,
+    "max_size":  "5gb"
+  }
+}
+
+### 3.6.1
+//清空字段数据缓存
+POST /test-3-2-1/_cache/clear?fielddata=true  
+//清空节点的查询缓存
+POST /test-3-2-1/_cache/clear?query=true      
+//清空分片的请求缓存
+POST /test-3-2-1/_cache/clear?request=true
+
+POST /test-3-2-1/_cache/clear
+
+POST /_cache/clear
+
+### 3.6.2
+POST /test-3-2-1/_refresh
+
+POST /_refresh
+
+### 3.6.3
+POST /test-3-2-1/_flush
+
+POST /_flush
+
+### 3.6.4
+POST /test-3-2-1/_forcemerge
+
+POST /_forcemerge
+
+### 3.6.5
+POST /test-3-2-1/_close
+
+POST /test-3-2-1/_open
+
+### 3.6.6
+POST /test-3-2-1/_freeze
+
+POST /test-3-2-1/_unfreeze
+
+### 3.7
+PUT test-3-2-1/_settings
+{
+  "index.blocks.read_only":"true"
+}
+
+PUT test-3-2-1/_settings
+{
+  "index.blocks.read_only":"false"
+}
+
+PUT test-3-2-1/_settings
+{
+  "index.blocks.write":"true"
+}
+
+POST /test-3-2-1/_close
+
+### 3.8.1
+PUT _index_template/service-template
+{
+  "index_patterns": [
+"service-log*"
+  ],
+  "template": {
+"settings": {
+      "number_of_shards": 5,
+      "number_of_replicas": 1
+},
+"mappings": {
+      "properties": {
+        "serviceid": {
+          "type": "keyword"
+        },
+        "content": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "created_at": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss"
+        }
+      }
+},
+"aliases": {
+      "service-logs": {}
+}
+  },
+  "priority": 200,
+  "version": 3,
+  "_meta": {
+"description": "my custom"
+  }
+}
+
+GET /_index_template/service-template
+
+PUT service-log1
+
+GET service-log1
+
+PUT service-log2
+{
+  "settings": {
+"number_of_shards": "3",
+"number_of_replicas": "2"
+  },
+  "mappings": {
+"properties": {
+      "level": {
+        "type": "text"
+      },
+      "serviceid": {
+        "type": "long"
+      }
+}
+  }
+}
+
+DELETE /_index_template/service-template
+
+### 3.8.2
+PUT _component_template/comp1
+{
+  "template": {
+"mappings": {
+      "properties": {
+        "content": {
+          "type": "text"
+        }
+      }
+}
+  }
+}
+
+GET _component_template/comp1
+
+PUT _component_template/comp2
+{
+  "template": {
+"settings": {
+      "number_of_shards": "3",
+      "number_of_replicas": "2"
+},
+"aliases": {
+      "loginfo": {}
+}
+  }
+}
+
+PUT _index_template/infotmp
+{
+  "index_patterns": ["loginfo*"],
+  "priority": 200,
+  "composed_of": ["comp1", "comp2"]
+}
+
+PUT loginfo1
+
+GET loginfo1
+
+DELETE /_index_template/infotmp
+
+DELETE _component_template/comp1
+
+DELETE _component_template/comp2
+
+### 3.9.1
+GET /_cat/indices/test-3-2-1?v&format=json
+
+.\elasticsearch.bat -Epath.data=data2 -Epath.logs=log2 -Enode.name=node-2
+
+### 3.9.2
+GET /_cat/segments/test-3-2-1?v&format=json
+
+GET /test-3-2-1/_segments
+
+### 3.9.3
+GET /test-3-2-1/_shard_stores
+
+### 3.9.4
+GET /test-3-2-1/_recovery
+
+### 3.9.5
+GET /test-3-2-1,mysougoulog/_stats
+
+GET /test-3-2-1,mysougoulog/_stats/merge,refresh
+
+### 3.10
+.\elasticsearch.bat -Epath.data=data -Epath.logs=logs -Enode.name=node-1 -Enode.attr.zone=left
+
+.\elasticsearch.bat -Epath.data=data2 -Epath.logs=log2 -Enode.name=node-2 -Enode.attr.zone=right
+
+.\elasticsearch.bat -Epath.data=data3 -Epath.logs=log3 -Enode.name=node-3 -Enode.attr.zone=top
+
+PUT index-allocation
+{
+  "settings": {
+    "number_of_shards": "3",
+    "number_of_replicas": "1"
+  }
+}
+
+PUT index-allocation/_settings
+{
+  "index.routing.allocation.include.zone": "left,right"
+}
+
+GET _cat/shards/index-allocation?v

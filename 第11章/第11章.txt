@@ -1,0 +1,6 @@
+sudo tar -zxvf kibana-7.9.1-linux-x86_64.tar -C /opt
+
+server.host: "192.168.34.128"
+elasticsearch.hosts: ["http://192.168.34.129:9200"]
+
+./bin/kibana --allow-root

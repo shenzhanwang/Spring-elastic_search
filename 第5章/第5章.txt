@@ -1,0 +1,716 @@
+### 5.1.1
+POST test-3-2-1/_search
+{
+  "query": {
+"term": {
+      "name.keyword": {
+        "value": "张三"
+      }
+}
+  }
+}
+
+### 5.1.2
+POST test-3-2-1/_search
+{
+  "query": {
+"terms": {
+      "name.keyword": [
+        "张三",
+        "王五"
+      ]
+}
+  }
+}
+
+### 5.1.3
+POST test-3-2-1/_search
+{
+  "query": {
+"ids": {
+      "values": ["1","2"]
+}
+  }
+}
+
+### 5.1.4
+POST test-3-2-1/_search
+{
+  "query": {
+"range": {
+      "born": {
+        "gte": "2020/09/11 00:00:00",
+        "lte": "2020/09/13 00:00:00",
+        "format": "yyyy/MM/dd HH:mm:ss"
+      }
+}
+  }
+}
+
+POST test-3-2-1/_search
+{
+  "query": {
+"range": {
+      "born": {
+        "gte": "2020/09/11 08:00:00",
+        "lte": "2020/09/13 08:00:00",
+        "format": "yyyy/MM/dd HH:mm:ss",
+        "time_zone": "+08:00"
+      }
+}
+  }
+}
+
+### 5.1.5
+POST test-3-2-1/_doc/5
+{
+  "id": "5",
+  "sex": true,
+  "name": "刘大",
+  "born": "2020-02-18 00:02:20",
+  "age": 20,
+  "location": {
+"lat": 21.12,
+"lon": -71.34
+  }
+}
+
+POST test-3-2-1/_search
+{
+  "query": {
+"exists": {
+      "field": "age"
+}
+  }
+}
+
+### 5.1.6
+PUT prefix-test
+{
+  "mappings": {
+"properties": {
+      "address": {
+        "type": "text",
+        "index_prefixes": {
+          "min_chars" : 1,
+          "max_chars" : 5
+        }
+      }
+}
+  }
+}
+
+PUT prefix-test/_bulk
+{"index":{"_id":"1"}}
+{"id":"1","address":"wuhan qingshan"}
+{"index":{"_id":"2"}}
+{"id":"2","address":"guangzhou baiyun"}
+{"index":{"_id":"3"}}
+{"id":"3","address":"beijing chaoyang"}
+
+
+POST prefix-test/_search
+{
+  "query": {
+"prefix": {
+      "address": {
+        "value": "baiy"
+      }
+}
+  }
+}
+
+### 5.1.7
+POST test-3-2-1/_search
+{
+  "query": {
+"regexp": {
+      "name.keyword": ".*大.*"
+}
+  }
+}
+
+### 5.1.8
+POST test-3-2-1/_search
+{
+  "query": {
+"wildcard": {
+      "name.keyword": "?大"
+}
+  }
+}
+
+### 5.2.1
+PUT ik-text/_doc/1
+{
+  "content":"武汉大学",
+  "abstract":"200210452014"
+}
+PUT my_analyzer-text/_doc/1
+{
+  "content":"武汉大学",
+  "abstract":"200210452014"
+}
+
+POST ik-text/_search
+{
+  "query": {
+"match": {
+      "content": {
+        "query": "武大",
+        "analyzer": "ik_max_word"
+      }
+}
+  }
+}
+
+POST my_analyzer-text/_search
+{
+  "query": {
+"match": {
+      "content": {
+        "query": "武大",
+        "analyzer": "my_analyzer"
+      }
+}
+  }
+}
+
+POST ik-text/_search
+{
+  "query": {
+    "match": {
+      "content": {
+        "query": "武汉 浙大",
+        "analyzer": "ik_max_word",
+        "operator": "and"
+      }
+    }
+  }
+}
+
+### 5.2.2
+POST ik-text/_search
+{
+  "query": {
+"match_bool_prefix" : {
+      "content" : "武大 大学 武汉"
+}
+  }
+}
+
+POST ik-text/_search
+{
+  "query": {
+"bool" : {
+      "should": [
+        { "term": { "content": "武大" }},
+        { "term": { "content": "大学" }},
+        { "prefix": { "content": "武汉"}}
+      ]
+}
+  }
+}
+
+### 5.2.3
+PUT ik-text/_doc/2
+{
+  "content":"tom cat is server",
+  "abstract":"1092457"
+}
+
+POST ik-text/_search
+{
+  "query": {
+"match_phrase" : {
+      "content": {
+        "query": "tom server",
+        "slop": 0
+      }
+}
+  }
+}
+
+POST ik-text/_search
+{
+  "query": {
+"match_phrase" : {
+      "content": {
+        "query": "tom server",
+        "slop": 1
+      }
+}
+  }
+}
+
+### 5.2.4
+POST ik-text/_search
+{
+  "query": {
+"match_phrase_prefix" : {
+      "content": {
+        "query": "tom cat se"
+      }
+}
+  }
+}
+
+### 5.2.5
+POST ik-text/_search
+{
+  "query": {
+"multi_match": {
+      "query": "tom server",
+      "fields": ["content","abstract"],
+      "operator": "and",
+      "type": "best_fields"
+}
+  }
+}
+
+### 5.2.6
+POST my_analyzer-text/_search
+{
+  "query": {
+"query_string": {
+      "query": "汉大 AND 804",
+      "analyzer": "my_analyzer"
+}
+  }
+}
+
+POST my_analyzer-text/_search
+{
+  "query": {
+"query_string": {
+      "query": "\"汉大\" AND \"84\"",
+      "analyzer": "my_analyzer"
+}
+  }
+}
+
+POST my_analyzer-text/_search
+{
+  "query": {
+"query_string": {
+      "query": "\"汉大\" AND \"4520\"",
+      "analyzer": "my_analyzer"
+}
+  }
+}
+
+### 5.3.1
+PUT geo-shop
+{
+  "mappings": {
+"properties": {
+      "name":{
+        "type": "keyword"
+      },
+      "location": {
+        "type": "geo_point"
+      }
+}
+  }
+}
+
+PUT geo-shop/_bulk
+{"index":{"_id":"1"}}
+{"name":"北京","location":[116.4072154982,39.9047253699]}
+{"index":{"_id":"2"}}
+{"name":"上海","location":[121.4737919321,31.2304324029]}
+{"index":{"_id":"3"}}
+{"name":"天津","location":[117.1993482089,39.0850853357]}
+{"index":{"_id":"4"}}
+{"name":"顺义","location":[116.6569478577,40.1299127031]}
+{"index":{"_id":"5"}}
+{"name":"石家庄","location":[114.52,38.05]}
+{"index":{"_id":"6"}}
+{"name":"香港","location":[114.10000,22.20000]}
+{"index":{"_id":"7"}}
+{"name":"杭州","location":[120.20000,30.26667]}
+{"index":{"_id":"8"}}
+{"name":"青岛","location":[120.33333,36.06667]}
+
+POST geo-shop/_search
+{
+  "query": {
+"geo_distance": {
+      "distance": "100km",
+      "location": {
+        "lat": 39.96820,
+        "lon": 116.4107
+      }
+}
+  }
+}
+
+### 5.3.2
+POST geo-shop/_search
+{
+  "query": {
+"geo_bounding_box": {
+      "location": {
+        "top_left": {
+          "lat": 40.82,
+          "lon": 111.65
+        },
+        "bottom_right": {
+          "lat": 36.07,
+          "lon": 120.33
+        }
+      }
+}
+  }
+}
+
+### 5.3.3
+POST geo-shop/_search
+{
+  "query": {
+"geo_polygon": {
+      "location": {
+        "points": [
+          {
+            "lat": 39.9,
+            "lon": 116.4
+          },
+          {
+            "lat": 41.8,
+            "lon": 123.38
+          },
+          {
+            "lat": 30.52,
+            "lon": 114.31
+          }
+        ]
+      }
+}
+  }
+}
+
+### 5.4.1
+POST test-3-2-1/_search
+{
+  "query": {
+"bool": {
+      "must": [
+        {
+          "match": {
+            "name": "张 刘 赵"
+          }
+        }
+      ],
+      "should": [
+        {
+           "range": {
+             "age": {
+               "gte": 10
+             }
+           }
+        }
+      ],
+      "filter": [
+        {
+          "term": {
+            "sex": "true"
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "term": {
+            "born": {
+              "value": "2020-10-14 00:02:20"
+            }
+          }
+        }
+      ]
+}
+  }
+}
+
+POST test-3-2-1/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        {"match": {"name": "刘"}},
+        {"match": {"name": "王"}},
+        {"match": {"name": "张"}}
+      ],
+      "minimum_should_match" : 2
+    }
+  }
+}
+
+### 5.4.2
+POST test-3-2-1/_search
+{
+  "query": {
+"constant_score": {
+      "filter": {
+        "term": {
+          "sex": "false"
+        }
+      },
+      "boost": 1.2
+}
+  }
+}
+
+### 5.4.3
+POST sougoulog/_search
+{
+  "query": {
+   "dis_max": {
+     "queries": [
+       {"match": {"keywords": "火车"}},
+       {"match": {"rank": "1"}}
+      ],
+      "tie_breaker": 0.8
+   }
+  },
+  "from": 0,
+  "size": 10
+}
+
+### 5.4.4
+POST sougoulog/_search
+{
+  "query": {
+    "boosting": {
+      "positive": {
+        "match": {"keywords": "车"}},
+      "negative": {
+        "range": {"rank": {"lte": 10}
+        }
+      },
+      "negative_boost": 0.5
+    }
+  }
+}
+
+### 5.6.1
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 10,
+  "from": 0, 
+  "track_total_hits": true
+}
+
+PUT _settings
+{
+  "index.max_result_window" : "2000000000"
+}
+
+### 5.6.2
+POST sougoulog/_search?scroll=1m
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 10,
+  "track_total_hits": true
+}
+
+POST /_search/scroll
+{
+  "scroll": "1m",
+  "scroll_id": " FgluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFGRGM3hQblVCVEw1b2pZdXQxSnJlAAAAAAAACFQWRUlqTWhOckRTb3ktQmJtbzNXOEpHQQ=="
+}
+
+DELETE /_search/scroll
+{
+  "scroll_id" : " FgluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFGRGM3hQblVCVEw1b2pZdXQxSnJlAAAAAAAACFQWRUlqTWhOckRTb3ktQmJtbzNXOEpHQQ=="
+}
+
+DELETE /_search/scroll/_all
+
+### 5.6.3
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "track_total_hits": true,
+  "size": 10,
+  "from": 0, 
+  "sort": [
+{
+      "id": {
+        "order": "asc"
+      }
+}
+  ]
+}
+
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "track_total_hits": true,
+  "size": 10,
+  "from": 0, 
+  "sort": [
+{
+      "id": {
+        "order": "asc"
+      }
+}
+  ],
+  "search_after": [10]
+}
+
+### 5.7
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },"sort": [
+{
+      "name.keyword": {
+        "order": "desc"
+      },
+      "age": {
+        "missing": "_last"
+      }
+}
+  ]
+}
+
+POST shopping/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "sort": [
+{
+      "tags.keyword": {
+        "mode": "max"
+      }
+}
+  ]
+}
+
+### 5.8
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "_source": [ "born", "name" ]
+}
+
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "_source": {
+"excludes": [
+      "born",
+      "id"
+]
+  }
+}
+
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "docvalue_fields": ["name.keyword"]
+}
+
+### 5.9
+POST my_analyzer-text/_search
+{
+  "query": {
+"query_string": {
+      "query": "武术 \"210\""
+}
+  },
+  "highlight": {
+"pre_tags" : ["<tag1>"],
+"post_tags" : ["</tag1>"],
+"fields": {
+      "abstract": {},
+      "content": {}
+}
+  }
+}
+
+### 5.10
+POST collapse-test/_bulk
+{"index":{"_id":"1"}}
+{"id":"1","name":"王五","level":5,"score":90}
+{"index":{"_id":"2"}}
+{"id":"2","name":"李四","level":5,"score":70}
+{"index":{"_id":"3"}}
+{"id":"3","name":"黄六","level":5,"score":70}
+{"index":{"_id":"4"}}
+{"id":"4","name":"张三","level":5,"score":50}
+{"index":{"_id":"5"}}
+{"id":"5","name":"马七","level":4,"score":50}
+{"index":{"_id":"6"}}
+{"id":"6","name":"黄小","level":4,"score":90}
+
+POST collapse-test/_search
+{
+  "query": {
+    "match_all": {}
+  },
+  "collapse": {
+    "field": "level"
+  }
+}
+
+POST collapse-test/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "collapse": {
+"field": "level",
+"inner_hits": {
+      "name": "by_level",
+      "size": 2,
+      "sort": [ { "score": "asc" } ]
+}
+  }
+}
+
+POST collapse-test/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "collapse": {
+"field": "level",
+"inner_hits": {
+      "name": "by_level",
+      "size": 5,
+      "sort": [ { "score": "asc" } ],
+      "collapse": { "field": "score" }
+}
+  }
+}
+
+### 5.11
+POST test-3-2-1/_explain/4
+{
+  "query": {
+"range": {
+      "born": {
+        "gte": "2020-09-11 08:00:00",
+        "lte": "now/d",
+        "time_zone": "+08:00"
+      }
+}
+  }
+}

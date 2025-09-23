@@ -1,0 +1,488 @@
+### 9.2.1
+systemctl stop firewalld
+systemctl disable firewalld
+
+rpm -qa|grep java
+rpm -e --nodeps java-1.7.0-openjdk-headless-1.7.0.191-2.6.15.5.el7.x86_64
+rpm -e --nodeps java-1.8.0-openjdk-headless-1.8.0.181-7.b13.el7.x86_64
+
+* soft nofile 65535
+* hard nofile 65535
+
+* soft nproc 9000
+* hard nproc 9000
+
+*          soft    nproc     9000
+root       soft    nproc     unlimited
+
+* hard memlock unlimited
+* soft memlock unlimited
+
+vm.max_map_count = 262144
+
+### 9.2.2
+sudo tar -zxvf elasticsearch-7.9.1-linux-x86_64.tar.gz -C /opt
+useradd elasticsearch
+chown -R elasticsearch:elasticsearch /opt/elasticsearch-7.9.1/
+
+su elasticsearch
+cd /opt/elasticsearch-7.9.1
+./bin/elasticsearch -d -p pid
+
+kill -9 `cat pid`
+
+### 9.2.3
+su elasticsearch
+ulimit -a
+
+sysctl -a|grep vm.max_map_count
+
+GET _cat/health?v&format=json
+
+GET _nodes?filter_path=**.mlockall
+
+### 9.3
+POST /_cluster/voting_config_exclusions?node_names=node-1,node-2
+
+GET /_cluster/state?filter_path=metadata.cluster_coordination
+
+DELETE /_cluster/voting_config_exclusions?wait_for_removal=false
+
+GET /_cluster/state?filter_path=metadata.cluster_coordination
+
+PUT /_cluster/settings
+{
+  "persistent" : {
+    "cluster.routing.allocation.total_shards_per_node" : "600"
+  }
+}
+
+PUT test
+{
+  "settings": {
+    "number_of_shards": "5",
+    "number_of_replicas": "1",
+    "index.routing.allocation.total_shards_per_node" : 2
+  },
+  "mappings": {
+    "properties": {
+      "userid": {
+        "type": "text"
+      }
+    }
+  }
+}
+
+### 9.4.1
+GET /_cluster/state
+
+GET /_cluster/state/routing_table/allocation-test
+
+GET /_cluster/state/nodes
+
+### 9.4.2
+GET _cluster/health
+
+GET _cluster/health/allocation-test
+
+### 9.4.3
+GET /_cluster/stats
+
+GET /_nodes/stats
+
+GET /_nodes/usage
+
+### 9.4.4
+GET /_nodes/hot_threads
+
+### 9.4.5
+PUT allocation-test/_settings
+{
+  "index.search.slowlog.threshold.query.warn": "10ms",
+  "index.search.slowlog.threshold.query.info": "0ms",
+  "index.search.slowlog.threshold.query.debug": "0ms",
+  "index.search.slowlog.threshold.query.trace": "0ms",
+  "index.search.slowlog.threshold.fetch.warn": "10ms",
+  "index.search.slowlog.threshold.fetch.info": "0ms",
+  "index.search.slowlog.threshold.fetch.debug": "0ms",
+  "index.search.slowlog.threshold.fetch.trace": "0ms",
+  "index.search.slowlog.level": "info"
+}
+
+### 9.4.6
+PUT allocation-test/_settings
+{
+  "index.indexing.slowlog.threshold.index.warn": "10ms",
+  "index.indexing.slowlog.threshold.index.info": "0ms",
+  "index.indexing.slowlog.threshold.index.debug": "0ms",
+  "index.indexing.slowlog.threshold.index.trace": "0ms",
+  "index.indexing.slowlog.level": "info",
+  "index.indexing.slowlog.source": "1000"
+}
+
+### 9.5
+PUT _index_template/device-template
+{
+  "index_patterns": [
+    "device-*"
+  ],
+  "template": {
+    "settings": {
+      "number_of_shards": 4,
+      "number_of_replicas": 1
+    },
+    "mappings": {
+      "properties": {
+        "deviceid": {
+          "type": "keyword"
+        },
+        "produce_time": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss"
+        },
+        "type": {
+          "type": "keyword"
+        },
+        "data": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "state": {
+          "type": "keyword"
+        }
+      }
+    },
+    "aliases": {
+      "device-all": {}
+    }
+  },
+  "priority": 200,
+  "version": 1,
+  "_meta": {
+    "description": "device templates"
+  }
+}
+
+PUT device-202101/_doc/a1-2020010100001-os
+{
+  "deviceid":"a1",
+  "produce_time":"2021-01-01 00:00:01",
+  "type":"os",
+  "data":"os version is 7.6",
+  "state":"normal"
+}
+
+PUT device-202102/_doc/a2-20200201000001-memory
+{
+  "deviceid":"a2",
+  "produce_time":"2021-02-01 00:00:01",
+  "type":"memory",
+  "data":"memory size is 4GB",
+  "state":"normal"
+}
+
+POST device-all/_search
+{
+  "query": {
+    "match_all": {}
+  },
+  "aggs": {
+    "type_stats": {
+      "terms": {
+        "field": "type",
+        "size": 10
+      }
+    }
+  }
+}
+
+### 9.6.2
+POST test-3-2-1/_delete_by_query?conflicts=proceed
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+PUT person
+{
+  "mappings": {
+    "properties": {
+      "name": {
+        "type": "text"
+      },
+       "age": {
+        "type": "integer"
+      }
+    }
+  }
+}
+
+POST person/_bulk
+{"index":{"_id":"1"}}
+{"name":"王朝","age":20}
+{"index":{"_id":"2"}}
+{"name":"马汉","age":30}
+
+POST person/_update_by_query?conflicts=proceed
+{
+  "script": {
+    "source": "ctx._source.age++",
+    "lang": "painless"
+  },
+  "query": {
+    "match_all": {}
+  }
+}
+
+PUT person/_mapping
+{
+  "properties": {
+    "name": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}
+
+POST person/_update_by_query?conflicts=proceed
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+GET person/_search
+{
+  "query": {
+    "term": {
+      "name.keyword": {
+        "value": "马汉"
+      }
+    }
+  }
+}
+
+### 9.7.2
+GET /_mget
+{
+  "docs": [
+    {
+      "_index": "test-3-2-1",
+      "_id": "4"
+    },
+    {
+      "_index": "person",
+      "_id": "2"
+    }
+  ]
+}
+
+GET /_msearch
+{"index":"person"}
+{"query":{"match_all":{}}}
+{"index":"test-3-2-1"}
+{"query":{"term":{"name.keyword":{"value":"王五"}}}}
+
+### 9.7.3
+GET person/_stats/request_cache
+
+GET /_nodes/stats/indices/query_cache
+
+### 9.7.4
+POST my_analyzer-text/_search?preference=_local
+{
+  "query": {
+"query_string": {
+      "query": "武术 \"210\""
+}
+  }
+}
+
+POST my_analyzer-text/_search?preference=tom
+{
+  "query": {
+"query_string": {
+      "query": "武术 \"210\""
+}
+  }
+}
+
+POST test-3-3-2/_search?routing=张三
+{
+  "query": {
+"match": {
+      "name": "张三"
+}
+  }
+}
+
+### 9.8
+POST _flush
+
+PUT /_cluster/settings
+{
+    "transient" : {
+        "cluster.routing.allocation.enable" : "none"
+    }
+}
+
+kill -9 `cat pid`
+
+./bin/elasticsearch -d -p pid
+
+GET _cat/health?v
+
+PUT /_cluster/settings
+{
+    "transient" : {
+        "cluster.routing.allocation.enable" : "all"
+    }
+}
+### 9.9.1
+yum install -y epel-release
+yum -y install fuse-sshfs
+
+mkdir /opt/backup
+chmod -R 777 /opt/backup
+mkdir /mnt/share
+chmod -R 777 /mnt
+
+sshfs root@192.168.34.130:/opt/backup /mnt/share -o allow_other
+df -h
+
+### 9.9.2
+PUT /_snapshot/es-repo
+{
+  "type": "fs",
+  "settings": {
+    "location": "/mnt/share",       
+    "compress": true
+  }
+}
+
+GET /_snapshot/es-repo
+
+POST /_snapshot/es-repo/_verify
+
+PUT /_snapshot/es-repo/snapshot1?wait_for_completion=true
+
+PUT /_snapshot/es-repo/snapshot2?wait_for_completion=true
+{
+  "indices": "allocation-test",
+  "ignore_unavailable": true,
+  "include_global_state": false
+}
+
+GET /_snapshot/es-repo/_status
+
+GET /_snapshot/es-repo/snapshot1/_status
+
+### 9.9.3
+POST allocation-test/_close
+
+POST /_snapshot/es-repo/snapshot1/_restore
+{
+  "indices": "allocation-test",
+  "ignore_unavailable": true,
+  "include_global_state": false, 
+  "include_aliases": false
+}
+
+GET /_cat/recovery/allocation-test?v&h=i,s,t,type,st,rep,f,fp,b,bp
+
+### 9.9.4
+DELETE /_snapshot/es-repo/snapshot1
+
+POST /_snapshot/es-repo/_cleanup
+
+DELETE /_snapshot/es-repo
+
+### 9.9.5
+PUT /_slm/policy/auto-backup
+{
+  "schedule": "0 0 12 * * ?", 
+  "name": "auto-snapshot", 
+  "repository": "es-repo", 
+  "config": {
+    "indices": ["*"] 
+  },
+  "retention": { 
+    "expire_after": "7d", 
+    "min_count": 5, 
+    "max_count": 10 
+  }
+}
+
+POST /_slm/policy/auto-backup/_execute
+
+GET /_slm/policy/auto-backup
+
+### 9.10.1
+cluster.name: es1
+node.name: node-1
+network.host: 127.0.0.1
+http.port: 9200
+transport.tcp.port: 9300
+discovery.seed_hosts: ["127.0.0.1"]
+cluster.initial_master_nodes: ["node-1"]
+
+cluster.name: es2
+node.name: node-2
+network.host: 127.0.0.1
+http.port: 9201
+transport.tcp.port: 9301
+discovery.seed_hosts: ["127.0.0.1"]
+cluster.initial_master_nodes: ["node-2"]
+
+POST cluster-1/_doc/1
+{
+  "info":"local cluster"
+}
+
+POST cluster-2/_doc/1
+{
+  "msg":"remote cluster"
+}
+
+PUT _cluster/settings
+{
+  "persistent": {
+    "cluster": {
+      "remote": {
+        "cluster_one": {
+          "seeds": [
+            "127.0.0.1:9300"
+          ],
+          "transport.ping_schedule": "30s"
+        },
+        "cluster_two": {
+          "mode": "sniff",
+          "seeds": [
+            "127.0.0.1:9301"
+          ],
+          "transport.compress": true,
+          "skip_unavailable": true
+        }
+      }
+    }
+  }
+}
+
+### 9.10.2
+POST /cluster_two:cluster-2/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+

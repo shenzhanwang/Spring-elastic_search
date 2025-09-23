@@ -1,0 +1,40 @@
+### 1.5
+POST first-index/_doc/1
+{
+  "content": "hello world"
+}
+
+POST first-index/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+### 1.6.1
+PUT /_cluster/settings
+{
+  "persistent" : {
+    "search.max_buckets" : "50000"
+  }
+}
+
+PUT /_cluster/settings
+{
+  "transient" : {
+    "search.max_buckets" : "30000"
+  }
+}
+
+GET /_cluster/settings
+
+PUT /_cluster/settings
+{
+  "persistent": {
+    "search.max_buckets": null
+  }
+}
+
+### 1.6.2
+GET _nodes?filter_path=**.mlockall
+

@@ -1,0 +1,642 @@
+### 7.1
+PUT order-obj-array
+{
+  "mappings": {
+    "properties": {
+      "orderid": {
+        "type": "integer"
+      },
+      "buyer": {
+        "type": "keyword"
+      },
+      "order_time": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      },
+      "goods": {
+        "properties": {
+          "goodsid": {
+            "type": "integer"
+          },
+          "goods_name": {
+            "type": "keyword"
+          },
+          "price": {
+            "type": "double"
+          },
+          "produce_time": {
+            "type": "date",
+            "format": "yyyy-MM-dd HH:mm:ss"
+          }
+        }
+      }
+    }
+  }
+}
+
+PUT order-obj-array/_doc/1
+{
+  "orderid": "1",
+  "buyer": "tom",
+  "order_time": "2020-11-04 00:00:00",
+  "goods": [
+    {
+      "goodsid": "1",
+      "goods_name": "milk",
+      "price": 5.2,
+      "produce_time": "2020-10-04 00:00:00"
+    },
+    {
+      "goodsid": "2",
+      "goods_name": "juice",
+      "price": 8.2,
+      "produce_time": "2020-10-12 00:00:00"
+    }
+  ]
+}
+
+POST order-obj-array/_search
+{
+  "query": {
+"bool": {
+      "must": [
+        {
+          "match": {
+            "goods.goods_name": "juice"
+          }
+        },
+        {
+          "match": {
+            "goods.produce_time": "2020-10-04 00:00:00"
+          }
+        }
+      ]
+}
+  }
+}
+
+### 7.2.1
+PUT order-nested
+{
+  "mappings": {
+"properties": {
+      "orderid": {
+        "type": "integer"
+      },
+      "buyer": {
+        "type": "keyword"
+      },
+      "order_time": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      },
+      "goods": {
+        "type": "nested",
+        "properties": {
+          "goodsid": {
+            "type": "integer"
+          },
+          "goods_name": {
+            "type": "keyword"
+          },
+          "price": {
+            "type": "double"
+          },
+          "produce_time": {
+            "type": "date",
+            "format": "yyyy-MM-dd HH:mm:ss"
+          }
+        }
+      }
+}
+  }
+}
+
+PUT order-nested/_doc/1
+{
+  "orderid":"1",
+  "buyer":"tom",
+  "order_time":"2020-11-04 00:00:00",
+  "goods":[
+{
+      "goodsid":"1",
+      "goods_name":"milk",
+      "price":5.2,
+      "produce_time":"2020-10-04 00:00:00"
+},
+{
+      "goodsid":"2",
+      "goods_name":"juice",
+      "price":8.2,
+      "produce_time":"2020-10-12 00:00:00"
+}
+  ]
+}
+
+POST order-nested/_update/1
+{
+  "doc": {
+"goods": [
+      {
+        "goodsid": "1",
+        "goods_name": "milk",
+        "price": 5.2,
+        "produce_time": "2020-10-04 00:00:00"
+      },
+      {
+        "goodsid": "2",
+        "goods_name": "juice",
+        "price": 8.2,
+        "produce_time": "2020-10-12 00:00:00"
+      },
+      {
+        "goodsid": "3",
+        "goods_name": "apple",
+        "price": 18.2,
+        "produce_time": "2020-10-05 00:00:00"
+      }
+]
+  }
+}
+
+### 7.2.2
+POST order-nested/_search
+{
+  "query": {
+"nested": {
+      "path": "goods",
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "match": {
+                "goods.goods_name": "juice"
+              }
+            },
+            {
+              "match": {
+                "goods.produce_time": "2020-10-04 00:00:00"
+              }
+            }
+          ]
+        }
+      }
+}
+  }
+}
+
+POST order-nested/_search
+{
+  "query": {
+"nested": {
+      "path": "goods",
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "match": {
+                "goods.goods_name": "milk"
+              }
+            }
+          ]
+        }
+      },
+      "inner_hits": {
+        "highlight": {
+          "fields": {
+            "*":{}
+          }
+        }
+      }
+}
+  }
+}
+
+PUT order-nested/_doc/2
+{
+  "orderid":"2",
+  "buyer":"mark",
+  "order_time":"2020-11-05 00:00:00",
+  "goods":[
+{
+      "goodsid":"5",
+      "goods_name":"milk",
+      "price":15.2,
+      "produce_time":"2020-08-04 00:00:00"
+},
+{
+      "goodsid":"6",
+      "goods_name":"meat",
+      "price":38.1,
+      "produce_time":"2020-09-12 00:00:00"
+}
+  ]
+}
+
+POST order-nested/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "sort": [
+{
+      "goods.price": {
+        "order": "desc",
+        "nested": {
+          "path": "goods"
+        },
+        "mode": "sum"
+      }
+}
+  ]
+}
+
+### 7.2.3
+POST order-nested/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "aggs": {
+"nest_agg": {
+      "nested": {
+        "path": "goods"
+      },
+      "aggs": {
+        "items": {
+          "terms": {
+            "field": "goods.goods_name"
+          }
+        }
+      }
+}
+  }
+}
+
+POST order-nested/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "aggs": {
+"nest_agg": {
+      "nested": {
+        "path": "goods"
+      },
+      "aggs": {
+        "sum_price": {
+          "terms": {
+            "field": "goods.goods_name"
+          },
+          "aggs": {
+            "reverse": {
+              "reverse_nested": {
+              },
+              "aggs": {
+                "parent": {
+                  "terms": {
+                    "field": "buyer",
+                    "size": 10
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+}
+  }
+}
+
+### 7.3.1
+PUT order-join
+{
+  "settings": {
+    "number_of_shards": "5",
+    "number_of_replicas": "1"
+  },
+  "mappings": {
+    "properties": {
+      "orderid": {
+        "type": "integer"
+      },
+      "buyer": {
+        "type": "keyword"
+      },
+      "order_time": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      },
+      "goodsid": {
+        "type": "integer"
+      },
+      "goods_name": {
+        "type": "keyword"
+      },
+      "price": {
+        "type": "double"
+      },
+      "produce_time": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      },
+      "my_join_field": {
+        "type": "join",
+        "relations": {
+          "order": "goods"
+        }
+      }
+    }
+  }
+}
+
+PUT order-join/_doc/1
+{
+  "orderid": "1",
+  "buyer": "tom",
+  "order_time": "2020-11-04 00:00:00",
+  "my_join_field": {
+    "name":"order"
+  }
+}
+
+PUT order-join/_doc/2?routing=1
+{
+  "goodsid": "1",
+  "goods_name": "milk",
+  "price": 5.2,
+  "produce_time": "2020-10-04 00:00:00",
+  "my_join_field": {
+    "name": "goods",
+    "parent": "1"
+  }
+}
+
+PUT order-join/_doc/3?routing=1
+{
+  "goodsid": "2",
+  "goods_name": "juice",
+  "price": 8.2,
+  "produce_time": "2020-10-12 00:00:00",
+  "my_join_field": {
+    "name": "goods",
+    "parent": "1"
+  }
+}
+
+POST order-join/_update/3?routing=1
+{
+  "doc": {
+    "price": 18.2
+  }
+}
+
+### 7.3.2
+POST order-join/_search
+{
+  "query": {
+    "term": {
+      "my_join_field": "goods"
+    }
+  }
+}
+
+POST order-join/_search
+{
+  "query": {
+    "has_parent": {
+      "parent_type": "order",
+      "query": {
+        "term": {
+          "buyer": {
+            "value": "tom"
+          }
+        }
+      }
+    }
+  }
+}
+
+POST order-join/_search
+{
+  "query": {
+    "has_parent": {
+      "parent_type": "order",
+      "query": {
+        "term": {
+          "buyer": {
+            "value": "tom"
+          }
+        }
+      },
+      "inner_hits": {}
+    }
+  }
+}
+
+POST order-join/_search
+{
+  "query": {
+    "has_child": {
+      "type": "goods",
+      "query": {
+        "match_all": {}
+      }
+    }
+  }
+}
+
+POST order-join/_search
+{
+  "query": {
+    "has_child": {
+      "type": "goods",
+      "query": {
+        "match_all": {}
+      },
+      "max_children": 1
+    }
+  }
+}
+
+POST order-join/_search
+{
+  "query": {
+    "has_child": {
+      "type": "goods",
+      "query": {
+        "match_all": {}
+      },
+      "inner_hits": {}
+    }
+  }
+}
+
+POST order-join/_search
+{
+  "query": {
+    "parent_id": {
+      "type": "goods",
+      "id": "1"
+    }
+  }
+}
+
+### 7.3.3
+POST order-join/_doc/4
+{
+  "orderid": "4",
+  "buyer": "mike",
+  "order_time": "2020-12-04 00:00:00",
+  "my_join_field": {
+    "name":"order"
+  }
+}
+
+POST order-join/_doc/5?routing=4
+{
+  "goodsid": "5",
+  "goods_name": "milk",
+  "price": 3.6,
+  "produce_time": "2020-11-04 00:00:00",
+  "my_join_field": {
+    "name": "goods",
+    "parent": "4"
+  }
+}
+
+POST order-join/_search
+{
+  "query": {
+    "match_all": {}
+  },
+  "aggs": {
+    "orders": {
+      "terms": {
+        "field": "buyer",
+        "size": 10
+      },
+      "aggs": {
+        "goods_data": {
+          "children": {
+            "type": "goods"
+          },
+          "aggs": {
+            "goods_name": {
+              "terms": {
+                "field": "goods_name",
+                "size": 10
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+POST order-join/_search
+{
+  "aggs": {
+    "goods": {
+      "terms": {
+        "field": "goods_name",
+        "size": 10
+      },
+      "aggs": {
+        "goods_data": {
+          "parent": {
+            "type": "goods"
+          },
+          "aggs": {
+            "orders": {
+              "terms": {
+                "field": "buyer",
+                "size": 10
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+### 7.4
+PUT orders
+{
+  "mappings": {
+    "properties": {
+      "ordered": {
+        "type": "integer"
+      },
+      "buyer": {
+        "type": "keyword"
+      },
+      "order_time": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      }
+    }
+  }
+}
+
+PUT goods
+{
+  "mappings": {
+    "properties": {
+      "goodsid": {
+        "type": "integer"
+      },
+      "goods_name": {
+        "type": "keyword"
+      },
+      "price": {
+        "type": "double"
+      },
+      "produce_time": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      },
+      "orderid": {
+        "type": "integer"
+      }
+    }
+  }
+}
+
+PUT orders/_doc/1
+{
+  "ordered": "1",
+  "buyer": "tom",
+  "order_time": "2020-11-04 00:00:00"
+}
+
+PUT goods/_bulk
+{"index":{"_id":"1"}}
+{"goodsid":"1","goods_name":"milk","price":5.2,"produce_time":"2020-10-04 00:00:00","orderid":1}
+{"index":{"_id":"2"}}
+{"goodsid":"2","goods_name":"juice","price":8.2,"produce_time":"2020-10-12 00:00:00","orderid":1}
+
+POST orders/_search
+{
+  "query": {
+    "term": {
+      "buyer": {
+        "value": "tom"
+      }
+    }
+  }
+}
+
+POST goods/_search
+{
+  "query": {
+    "terms": {
+      "orderid": [
+        "1"
+      ]
+    }
+  }
+}
+

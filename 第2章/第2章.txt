@@ -1,0 +1,83 @@
+### 2.3.2
+PUT allocation-test
+{
+  "settings": {
+    "number_of_shards": "3",
+    "number_of_replicas": "1"
+  }
+}
+
+GET _cat/shards/allocation-test?v
+
+GET /_cluster/allocation/explain
+{
+  "index": "allocation-test",
+  "shard": 0,
+  "primary": false
+}
+
+.\elasticsearch.bat -Epath.data=data2 -Epath.logs=log2 -Enode.name=node-2
+
+.\elasticsearch.bat -Epath.data=data3 -Epath.logs=log3 -Enode.name=node-3
+
+### 2.3.3
+.\elasticsearch.bat -Epath.data=data -Epath.logs=logs -Enode.name=node-1 -Enode.attr.zone=zone1
+
+.\elasticsearch.bat -Epath.data=data2 -Epath.logs=log2 -Enode.name=node-2 -Enode.attr.zone=zone1
+
+.\elasticsearch.bat -Epath.data=data3 -Epath.logs=log3 -Enode.name=node-3 -Enode.attr.zone=zone2
+
+PUT /_cluster/settings
+{
+  "transient": {
+    "cluster.routing.allocation.awareness.attributes": "zone",
+    "cluster.routing.allocation.awareness.force.zone.values": "zone1,zone2"
+  }
+}
+
+PUT allocation-awareness-test
+{
+  "settings": {
+    "number_of_shards": "3",
+    "number_of_replicas": "1"
+  }
+}
+
+GET _cat/shards/allocation-awareness-test?v
+
+### 2.3.4
+PUT _cluster/settings
+{
+  "transient" : {
+    "cluster.routing.allocation.exclude.state" : "abandon"
+  }
+}
+
+PUT _cluster/settings
+{
+  "transient" : {
+  "cluster.routing.allocation.exclude.state" : "abandon",
+  "cluster.routing.allocation.include._name" : "node-1,node-2",
+  "cluster.routing.allocation.require.state" : "good,fine"
+  }
+}
+
+### 2.4.2
+PUT recovery-test
+{
+  "settings": {
+    "number_of_shards": "3",
+    "number_of_replicas": "1"
+  }
+}
+
+GET /_cat/recovery/recovery-test?v&h=i,s,t,ty,st,snode,tnode,f,fp,b,bp
+
+### 2.4.3
+PUT _all/_settings
+{
+  "settings": {
+    "index.unassigned.node_left.delayed_timeout": "5m"
+  }
+}
+

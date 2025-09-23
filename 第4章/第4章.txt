@@ -1,0 +1,405 @@
+### 4.2.1
+POST _analyze
+{
+  "analyzer": "standard",
+  "text": "The 2019头条新闻 has spread out。"
+}
+
+PUT standard-text
+{
+  "settings": {
+"analysis": {
+      "analyzer": {
+        "my_standard_analyzer": {
+          "type": "standard",
+          "max_token_length": 3,
+          "stopwords": "_english_"
+        }
+      }
+}
+  },
+  "mappings": {
+"properties": {
+      "content": {
+        "type": "text",
+        "analyzer": "my_standard_analyzer"
+      }
+}
+  }
+}
+
+POST standard-text/_analyze
+{
+  "analyzer": "my_standard_analyzer",
+  "text": "The 2019头条新闻 has spread out。"
+}
+
+### 4.2.2
+POST _analyze
+{
+  "analyzer": "simple",
+  "text": "The 2019头条新闻 hasn’t spread out。"
+}
+
+### 4.2.3
+POST _analyze
+{
+  "analyzer": "whitespace",
+  "text": "The 2019头条新闻 hasn’t spread out。"
+}
+
+### 4.3.2
+POST _analyze
+{
+  "analyzer": "ik_smart",
+  "text": "诺贝尔奖是著名的世界超级大奖"
+}
+
+POST _analyze
+{
+  "analyzer": "ik_max_word",
+  "text": "诺贝尔奖是著名的世界超级大奖"
+}
+
+PUT ik-text
+{
+  "settings": {
+"analysis": {
+      "analyzer": {
+        "default": {
+          "type": "ik_max_word"
+        },
+        "default_search": {
+          "type": "ik_smart"
+        }
+      }
+}
+  },
+  "mappings": {
+"properties": {
+      "content": {
+        "type": "text"
+      },
+      "abstract":{
+        "type": "text",
+        "analyzer": "ik_smart",
+        "search_analyzer": "ik_max_word"
+      }
+}
+  }
+}
+
+### 4.4.1
+POST _analyze
+{
+  "char_filter": ["html_strip"],
+  "tokenizer": {
+"type": "keyword"
+  },
+  "filter": [],
+  "text": [
+"Tom &amp; Jerrey &lt; <b>world</b>"
+  ]
+}
+
+POST _analyze
+{
+  "char_filter": [{
+      "type": "mapping",
+      "mappings": [
+        "& => and"
+      ]
+}],
+  "tokenizer": {
+"type": "keyword"
+  },
+  "filter": [],
+  "text": [
+"Tom & Jerrey"
+  ]
+}
+
+POST _analyze
+{
+  "char_filter": [
+{
+      "type": "pattern_replace",
+      "pattern": "runoo+b",
+      "replacement": "tomcat"
+}
+  ],
+  "tokenizer": {
+"type": "keyword"
+  },
+  "filter": [],
+  "text": [
+"runooobbbb"
+  ]
+}
+
+### 4.4.2
+POST _analyze
+{
+  "char_filter": [],
+  "tokenizer": {
+"type": "ngram",
+"min_gram": 2,
+"max_gram": 3,
+"token_chars": [
+      "letter"
+]
+  },
+  "filter": [],
+  "text": [
+"tom cat8"
+  ]
+}
+
+POST _analyze
+{
+  "char_filter": [],
+  "tokenizer": {
+"type": "edge_ngram",
+"min_gram": 2,
+"max_gram": 5
+  },
+  "filter": [],
+  "text": [
+"tom cat8"
+  ]
+}
+
+### 4.4.3
+POST _analyze
+{
+  "char_filter": [],
+  "tokenizer": "standard",
+  "filter": [
+{
+      "type": "ngram",
+      "min_gram": 3,
+      "max_gram": 3
+}
+  ],
+  "text": "Quick fox"
+}
+
+POST _analyze
+{
+  "char_filter": [],
+  "tokenizer": "standard",
+  "filter": [
+{
+      "type": "edge_ngram",
+      "min_gram": 2,
+      "max_gram": 3
+}
+  ],
+  "text": "hello world2"
+}
+
+POST _analyze
+{
+  "char_filter": [],
+  "tokenizer": "standard",
+  "filter": [
+"stemmer"
+  ],
+  "text": "apples worlds flying"
+}
+
+POST _analyze
+{
+  "char_filter": [],
+  "tokenizer": "standard",
+  "filter": [
+"stop"
+  ],
+  "text": "there is an apple on a big tree"
+}
+
+### 4.4.4
+POST _analyze
+{
+  "char_filter": [
+"html_strip"
+  ],
+  "tokenizer": {
+"type": "standard",
+"max_token_length": "1"
+  },
+  "filter": [
+{
+      "type": "stop",
+      "stopwords": [
+        "是",
+        "一",
+        "个",
+        "着",
+        "的"
+      ]
+}
+  ],
+  "text": "<b>2020年</b>武汉是一个很大的城市"
+}
+
+PUT my_analyzer-text
+{
+  "settings": {
+"analysis": {
+      "tokenizer": {
+        "my_tokenizer": {
+          "type": "standard",
+          "max_token_length": "1"
+        }
+      },
+      "filter": {
+        "my_filter": {
+          "type": "stop",
+          "stopwords": [
+            "是",
+            "一",
+            "个",
+            "着",
+            "的"
+          ]
+        }
+      },
+      "analyzer": {
+        "my_analyzer": {
+          "type": "custom",
+          "char_filter": "html_strip",
+          "tokenizer": "my_tokenizer",
+          "filter": "my_filter"
+        }
+      },
+      "default": {
+        "type": "my_analyzer"
+      },
+      "default_search": {
+        "type": "my_analyzer"
+      }
+}
+  },
+  "mappings": {
+"properties": {
+      "content": {
+        "type": "text",
+        "analyzer": "my_analyzer"
+      },
+      "abstract": {
+        "type": "text",
+        "analyzer": "my_analyzer"
+      }
+}
+  }
+}
+
+### 4.5
+PUT term-vector
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "fulltext_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "type_as_payload"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "content": {
+        "type": "text",
+        "term_vector": "with_positions_offsets_payloads",
+        "analyzer": "fulltext_analyzer"
+      }
+    }
+  }
+}
+
+PUT term-vector/_doc/1
+{
+  "content" : "apple 121."
+}
+
+PUT term-vector/_doc/2
+{
+  "content" : "Black phone apple apple"
+}
+
+GET term-vector/_termvectors/1
+{
+  "fields" : ["content"],
+  "offsets" : true,
+  "payloads" : true,
+  "positions" : true,
+  "term_statistics" : true,
+  "field_statistics" : true
+}
+
+GET term-vector/_termvectors
+{
+  "doc": {
+    "content": "app apple"
+  },
+  "offsets": true,
+  "payloads": true,
+  "positions": true,
+  "term_statistics": true,
+  "field_statistics": true
+}
+
+### 4.6
+PUT normalize-keyword
+{
+  "settings": {
+    "analysis": {
+      "normalizer": {
+        "my_normalizer": {
+          "type": "custom",
+          "char_filter": [],
+          "filter": ["lowercase"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "country": {
+        "type": "keyword",
+        "normalizer": "my_normalizer",
+        "store": true
+      }
+    }
+  }
+}
+
+PUT normalize-keyword/_doc/1
+{
+  "country": "China"
+}
+
+PUT normalize-keyword/_doc/2
+{
+  "country": "chinA"
+}
+
+POST normalize-keyword/_search
+{
+  "query": {
+    "term": {
+      "country": "CHINA"
+    }
+  }
+}
+
+POST normalize-keyword/_search
+{
+  "stored_fields": ["country"]
+}
+

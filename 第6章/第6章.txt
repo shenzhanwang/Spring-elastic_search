@@ -1,0 +1,765 @@
+### 6.1.1
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"rank_avg": {
+      "avg": {
+        "field": "rank",
+        "missing": 0
+      }
+}
+  }
+}
+
+### 6.1.2
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"rank_max": {
+      "max": {
+        "field": "rank",
+        "missing": 0
+      }
+}
+  }
+}
+
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"rank_min": {
+      "min": {
+        "field": "rank",
+        "missing": 0
+      }
+}
+  }
+}
+
+### 6.1.3
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"rank_sum": {
+      "sum": {
+        "field": "rank",
+        "missing": 0
+      }
+}
+  }
+}
+
+### 6.1.4
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"rank_stats": {
+      "stats": {
+        "field": "rank",
+        "missing": 0
+      }
+}
+  }
+}
+
+### 6.1.5
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"rank_cardinality": {
+      "cardinality": {
+        "field": "rank",
+        "precision_threshold": 10
+      }
+}
+  }
+}
+
+### 6.1.6
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"rank_percent": {
+      "percentiles": {
+        "field": "rank"
+      }
+}
+  }
+}
+
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"rank_percent": {
+      "percentiles": {
+        "field": "rank",
+        "percents": [ 90, 95 ]
+      }
+}
+  }
+}
+
+### 6.1.7
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"percent_ranks": {
+      "percentile_ranks": {
+        "field": "rank",
+        "values": [ 10, 50 ]
+      }
+}
+  }
+}
+
+### 6.1.8
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"groupbytime": {
+      "terms": {
+        "field": "visittime",
+        "size": 10
+      },
+      "aggs": {
+        "top-N": {
+          "top_hits": {
+            "size": 2,
+            "_source": {
+              "includes": [ "keywords", "rank" ]
+            },
+            "sort": ["userid.keyword"]
+          }
+        }
+      }
+}
+  }
+}
+
+### 6.1.9
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+"matrix": {
+      "matrix_stats": {
+        "fields": ["rank","clicknum"]
+      }
+}
+  }
+}
+
+### 6.2.1
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+"group_by_time": {
+      "terms": {
+        "field": "visittime",
+        "size": 3,
+        "order": {
+          "_count": "desc"
+        }
+      }
+}
+  }
+}
+
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+"group_by_time": {
+      "terms": {
+        "field": "visittime",
+        "size": 3,
+        "order": {
+          "_count": "desc"
+        },
+        "show_term_doc_count_error": true
+      }
+}
+  }
+}
+
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+"group_by_time": {
+      "terms": {
+        "field": "visittime",
+        "size": 10,
+        "order": {
+          "_count": "desc"
+        },
+        "show_term_doc_count_error": true,
+        "min_doc_count": 30
+      }
+}
+  }
+}
+
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+"group_by_time": {
+      "terms": {
+        "field": "visittime",
+        "size": 10,
+        "order": {
+          "sum_rank": "desc"
+        },
+        "show_term_doc_count_error": true,
+        "min_doc_count": 10
+      },
+      "aggs": {
+        "sum_rank": {
+          "sum": {
+            "field": "rank"
+          }
+        }
+      }
+}
+  }
+}
+
+### 6.2.2
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+"range_rank": {
+      "range": {
+        "field": "rank",
+        "ranges": [
+          {
+            "to": 20
+          },
+          {
+            "from": 20,
+            "to": 50
+          },
+          {
+            "from": 50
+          }
+        ]
+      }
+}
+  }
+}
+
+### 6.2.3
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 10, 
+  "aggs": {
+"range_rank": {
+      "date_range": {
+        "field": "born",
+        "ranges": [
+          {
+            "from": "2020-09-11 00:00:00",
+            "to": "2020-10-11 00:00:00"
+          },
+          {
+            "from": "2020-10-11 00:00:00",
+            "to": "2020-11-11 00:00:00"
+          }
+        ]
+      }
+}
+  }
+}
+
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 10, 
+  "aggs": {
+"range_rank": {
+      "date_range": {
+        "field": "born",
+        "time_zone": "+08:00",
+        "ranges": [
+          {
+            "from": "2020-09-11 08:00:00",
+            "to": "2020-10-11 08:00:00"
+          },
+          {
+            "from": "2020-10-11 08:00:00",
+            "to": "2020-11-11 08:00:00"
+          }
+        ]
+      }
+}
+  }
+}
+
+### 6.2.4
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+"histogram_rank": {
+      "histogram": {
+        "field": "rank",
+        "interval": 400
+      }
+}
+  }
+}
+
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"histogram_rank": {
+      "histogram": {
+        "field": "rank",
+        "interval": 400,
+        "extended_bounds": {
+          "min": 0,
+          "max": 1500
+        }
+      }
+}
+  }
+}
+
+### 6.2.5
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 10, 
+  "aggs": {
+"range_rank": {
+      "date_histogram": {
+        "field": "born",
+        "calendar_interval": "month",
+        "time_zone": "+08:00"
+      }
+}
+  }
+}
+
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 10, 
+  "aggs": {
+"range_rank": {
+      "date_histogram": {
+        "field": "born",
+        "calendar_interval": "month",
+        "time_zone": "+08:00",
+        "extended_bounds": {
+          "min": "2020-08-01 00:00:00",
+          "max": "2020-12-01 00:00:00"
+        }
+      }
+}
+  }
+}
+
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 10, 
+  "aggs": {
+"range_rank": {
+      "date_histogram": {
+        "field": "born",
+        "fixed_interval": "30d",
+        "time_zone": "+08:00"
+      }
+}
+  }
+}
+
+### 6.2.6
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 10,
+  "aggs": {
+"miss": {
+      "missing": {
+        "field": "age"
+      }
+}
+  }
+}
+
+### 6.2.7
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"filteraggs": {
+      "filter": {
+        "term": {
+          "name.keyword": "张三"
+        }
+      },
+      "aggs": {
+        "names": {
+          "terms": {
+            "field": "name.keyword",
+            "size": 10
+          }
+        }
+      }
+}
+  }
+}
+
+### 6.2.8
+POST test-3-2-1/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"filtersaggs": {
+      "filters": {
+        "other_bucket": true, 
+        "filters": {
+          "zhang": {
+            "match": {
+              "name": "张"
+            }
+          },
+          "guan": {
+            "match": {
+              "name": "王"
+            }
+          }
+        }
+      }
+}
+  }
+}
+
+### 6.3.1
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+"date": {
+      "date_histogram": {
+        "field": "visittime",
+        "fixed_interval": "4m"
+      },
+      "aggs": {
+        "rank_avg": {
+          "avg": {
+            "field": "rank"
+          }
+        }
+      }
+},
+"rank_sum":{
+      "avg_bucket": {
+        "buckets_path": "date>rank_avg"
+      }
+}
+  }
+}
+
+### 6.3.2
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+"date": {
+      "date_histogram": {
+        "field": "visittime",
+        "fixed_interval": "4m"
+      },
+      "aggs": {
+        "rank_sum": {
+          "sum": {
+            "field": "rank"
+          }
+        }
+      }
+},
+"rank_sum":{
+      "sum_bucket": {
+        "buckets_path": "date>rank_sum"
+      }
+}
+  }
+}
+
+### 6.3.3
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+"date": {
+      "date_histogram": {
+        "field": "visittime",
+        "fixed_interval": "4m"
+      },
+      "aggs": {
+        "rank_data": {
+          "stats": {
+            "field": "rank"
+          }
+        }
+      }
+},
+"max_rank":{
+      "max_bucket": {
+        "buckets_path": "date>rank_data.max"
+      }
+}
+  }
+}
+
+### 6.3.4
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"date": {
+      "date_histogram": {
+        "field": "visittime",
+        "fixed_interval": "4m"
+      },
+      "aggs": {
+        "sum_rank": {
+          "sum": {
+            "field": "rank"
+          }
+        },
+        "acc_sum":{
+          "cumulative_sum": {
+            "buckets_path": "sum_rank"
+          }
+        }
+      }
+}
+  }
+}
+
+### 6.3.5
+POST sougoulog/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "size": 0,
+  "aggs": {
+"date": {
+      "date_histogram": {
+        "field": "visittime",
+        "fixed_interval": "4m"
+      },
+      "aggs": {
+        "avg_rank": {
+          "avg": {
+            "field": "rank"
+          }
+        },
+        "hb":{
+          "derivative": {
+            "buckets_path": "avg_rank"
+          }
+        }
+      }
+}
+  }
+}
+
+### 6.4
+PUT fielddata-test
+{
+  "mappings": {
+"properties": {
+      "content": {
+        "type": "text",
+        "fielddata": true
+      }
+}
+  }
+}
+
+PUT fielddata-test/_doc/1
+{
+  "content":"hello php java"
+}
+
+POST fielddata-test/_search
+{
+  "query": {
+"match_all": {}
+  },
+  "aggs": {
+"termdata": {
+      "terms": {
+        "field": "content",
+        "size": 10
+      }
+}
+  }
+}
+
+GET /_cat/fielddata?v&fields=content
+
+PUT /_cluster/settings
+{
+  "persistent" : {
+"indices.breaker.request.limit" : "30%"
+  }
+}
+
+### 6.5
+POST sougoulog/_search
+{
+  "query": {
+    "match_all": {}
+  },
+  "size": 0, 
+  "aggs": {
+    "user-stats": {
+      "terms": {
+        "field": "userid.keyword",
+        "execution_hint": "map"
+      }
+    }
+  }
+}
+
+PUT eager-ordinals
+{
+  "mappings": {
+    "properties": {
+      "username": {
+        "type": "keyword",
+        "eager_global_ordinals": true
+      }
+    }
+  }
+}
+
+### 6.6
+POST test-3-2-1/_search
+{
+  "query": {
+    "match_all": {}
+  },
+  "size": 10,
+  "aggs": {
+    "names": {
+      "terms": {
+        "field": "name.keyword",
+        "size": 10
+      }
+    }
+  },
+  "post_filter": {
+    "term": {
+      "name.keyword": "张三"
+    }
+  }
+}
+
+

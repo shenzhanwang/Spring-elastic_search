@@ -1,0 +1,25 @@
+PUT actor
+{
+  "settings": {
+    "number_of_shards": "5",
+    "number_of_replicas": "1"
+  },
+  "mappings": {
+      "properties": {
+        "actor_id": {
+          "type": "integer"
+        },
+        "first_name": {
+          "type": "keyword"
+        },
+        "last_name": {
+          "type": "keyword"
+        },
+        "last_update": {
+          "type": "date",
+          "format":"yyyy-MM-dd HH:mm:ss"
+        }
+      }
+  }
+}
+

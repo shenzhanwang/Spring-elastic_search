@@ -1,0 +1,15 @@
+### 12.1
+tar xzvf filebeat-7.9.1-linux-x86_64.tar.gz
+
+### 12.4
+./filebeat modules enable nginx
+
+./filebeat modules list
+
+./filebeat setup -e
+
+sudo ./filebeat -e
+### 12.5
+.\bin\logstash -f .\filebeat.conf
+
+sudo ./filebeat -e

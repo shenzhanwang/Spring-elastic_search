@@ -1,0 +1,11 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /home/wsz/Desktop/system.log
+  
+output.logstash:
+  hosts: ["192.168.34.1:5044"]
+
+processors:
+  - add_id: ~
